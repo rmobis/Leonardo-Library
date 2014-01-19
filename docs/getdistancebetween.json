@@ -6,32 +6,30 @@
 			"args": [
 				{
 					"type": "integer",
-					"name": "x"
+					"name": "xfrom"
 				},
 				{
 					"type": "integer",
-					"name": "y"
+					"name": "yfrom"
 				},
 				{
 					"type": "integer",
-					"name": "z"
+					"name": "zfrom"
 				},
 				{
 					"type": "integer",
-					"name": "a"
+					"name": "xto"
 				},
 				{
 					"type": "integer",
-					"name": "b"
+					"name": "yto"
 				},
 				{
 					"type": "integer",
-					"name": "c"
+					"name": "zto"
 				}
 			],
-			"description": "Returns the distance between positions given or -1 if it's not located on the same floor.",
-			"ex": "if getdistancebetween($posx, $posy, $posz, 33333, 44444, 7) >= 10 then\n	gotolabel('Trapped')\nend",
-			"exDescription": "Will go to the label 'Trapped' if the distance between coordinates is more or equal to 10."
+			"description": "Returns the distance between positions given or -1 if it's not located on the same floor."
 		},
 		{
 			"rettype": "integer",
@@ -45,25 +43,7 @@
 					"name": "coords2"
 				},
 			],
-			"description": "Returns the distance between positions given or -1 if it's not located on the same floor.",
-			"ex": "if getdistancebetween({$posx, $posy, $posz}, {33333, 44444, 7}) >= 10 then\n	gotolabel('Trapped')\nend",
-			"exDescription": "Will go to the label 'Trapped' if the distance between coordinates is more or equal to 10."
-		},
-		{
-			"rettype": "integer",
-			"args": [
-				{
-					"type": "table",
-					"name": "coords1"
-				},
-				{
-					"type": "table",
-					"name": "coords2"
-				},
-			],
-			"description": "Returns the distance between positions given or -1 if it's not located on the same floor.",
-			"ex": "if getdistancebetween({x = $posx, y = $posy, z = $posz}, {x = 33333, y = 44444, z = 7}) >= 10 then\n	gotolabel('Trapped')\nend",
-			"exDescription": "Will go to the label 'Trapped' if the distance between coordinates is more or equal to 10."
+			"description": "Returns the distance between positions given or -1 if it's not located on the same floor."
 		}
 	]
 }
