@@ -21,7 +21,7 @@
                                         "name": "filter"
                                 }
                         ],
-                        "description": "Returns the amount of players found in the <i>range</i> distance. Optionally you can add a function to <i>filter</i> the amount of creatures found."
+                        "description": "Returns the amount of players found in the <i>range</i> distance. Optionally you can add a function to <i>filter</i> the amount of players found."
                 }
         ]
 }
