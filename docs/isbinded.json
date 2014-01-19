@@ -1,0 +1,29 @@
+{
+	"name": "isbinded",
+	"invocations": [
+		{
+			"rettype": "boolean",
+			"args": [
+				{
+					"type": "string",
+					"name": "hotkey¹, hotkey², hotkey*, ..."
+				}
+			],
+			"description": "Checks if you have the current hotkeys binded on functions keyboard.",
+			"ex": "if not isbinded('exura', 'exura gran', 'exura vita') then\n	messagebox('Error', 'Couldn\'t find hotkey binded for spells: exura, exura gran or exura vita')\nend",
+			"exDescription": "Will pop out a window with the error if the spells exura, exura gran or exura vita couldn't be found on your hotkeys."
+		},
+		{
+			"rettype": "boolean",
+			"args": [
+				{
+					"type": "table",
+					"name": "hotkey¹, hotkey², hotkey*, ..."
+				}
+			],
+			"description": "Checks if you have the current hotkeys binded on functions keyboard.",
+			"ex": "if not isbinded({'exura', 'automatic'}, {'avalanche rune', 'crosshair'}) then\n	messagebox('Error', 'Couldn\'t find hotkey binded for spells: exura, or for items: avalanche rune.')\nend",
+			"exDescription": "Will pop out a window with the error if the spell exura or avalanche rune couldn't be found on your hotkeys, based on the bind type given."
+		}
+	]
+}

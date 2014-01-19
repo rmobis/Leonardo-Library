@@ -1,0 +1,25 @@
+{
+	"name": "setareasize",
+	"invocations": [
+		{
+			"rettype": "void",
+			"args": [
+				{
+					"type": "string",
+					"name": "name"
+				},
+				{
+					"type": "integer",
+					"name": "width"
+				},
+				{
+					"type": "integer",
+					"name": "height"
+				}
+			],
+			"description": "Sets the width and height for a special area.",
+			"ex": "setareasize('SpecialArea', 5, 5)",
+			"exDescription": "Will set the area width and height for a square of 5x5 tiles."
+		}
+	]
+}

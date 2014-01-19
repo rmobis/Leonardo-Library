@@ -1,0 +1,29 @@
+{
+	"name": "paroundfilter",
+	"invocations": [
+		{
+			"rettype": "integer",
+			"args": [
+				{
+					"type": "integer",
+					"name": "range"
+				},
+				{
+					"type": "optional boolean",
+					"name": "floor"
+				},
+				{
+					"type": "optional string",
+					"name": "names¹, names², name*, ..."
+				},
+				{
+					"type": "optional function",
+					"name": "f"
+				}
+			],
+			"description": "Returns the amount of players found in the range distance. Optionally you can add a function to filter those creatures.",
+			"ex": "if paroundfilter('Bubble', function(cre) return cre.hppc < 70 end) >= 1 then\n	cast('exura sio "Bubble')\nend, ,
+			"exDescription": "Will sio Bubble if it's on your screen and have less than 70 health percent."
+		}
+	]
+}

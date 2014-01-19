@@ -1,0 +1,25 @@
+{
+	"name": "unrust",
+	"invocations": [
+		{
+			"rettype": "void",
+			"args": [
+				{
+					"type": "boolean",
+					"name": "ignore"
+				},
+				{
+					"type": "boolean",
+					"name": "drop"
+				},
+				{
+					"type": "integer",
+					"name": "value"
+				}
+			],
+			"description": "Uses rust remover on all the valid rust items found.",
+			"ex": "auto(1000)\nunrust(true, true, 500)",
+			"exDescription": "Will use rust remover on semi-rare or rare rusty items, and discard items worthless than 500 gold coins."
+		}
+	]
+}

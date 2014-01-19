@@ -1,0 +1,17 @@
+{
+	"name": "getareasize",
+	"invocations": [
+		{
+			"rettype": "table",
+			"args": [
+				{
+					"type": "string",
+					"name": "name"
+				}
+			],
+			"description": "Returns the special area width and height.",
+			"ex": "print(getareasize('SpecialArea'))",
+			"exDescription": "Will print out the width and height of the special area in the format {w = width, h = height}."
+		}
+	]
+}

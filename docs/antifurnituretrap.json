@@ -1,0 +1,21 @@
+{
+	"name": "antifurnituretrap",
+	"invocations": [
+		{
+			"rettype": "void",
+			"args": [
+				{
+					"type": "optional integer",
+					"name": "weapon"
+				},
+				{
+					"type": "optional integer",
+					"name": "time"
+				}
+			],
+			"description": "Breaks all the destructible items that block the path of your character with the weapon given.",
+			"ex": "antifurnituretrap('machete', 60)",
+			"exDescription": "Will start anti furniture script after 60 seconds of stand time."
+		}
+	]
+}

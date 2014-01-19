@@ -1,0 +1,29 @@
+{
+	"name": "paroundfilterignore",
+	"invocations": [
+		{
+			"rettype": "integer",
+			"args": [
+				{
+					"type": "integer",
+					"name": "range"
+				},
+				{
+					"type": "optional boolean",
+					"name": "floor"
+				},
+				{
+					"type": "optional string",
+					"name": "names¹, names², names*, ..."
+				},
+				{
+					"type": "optional function",
+					"name": "f"
+				}
+			],
+			"description": "Returns the amount of players found in the range distance, excluding creature names found in the list. Optionally you can add a function to filter those creatures.",
+			"ex": "if paroundfilterignore('Bubble', function(cre) return isfriend(cre) end) >= 1 then\n	navsay('Friend to sight')\nend, ,
+			"exDescription": "Will send a nav message if there's some friend visible on your screen and the creature is not Bubble."
+		}
+	]
+}

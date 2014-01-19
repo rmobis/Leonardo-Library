@@ -1,0 +1,29 @@
+{
+	"name": "setareaposition",
+	"invocations": [
+		{
+			"rettype": "void",
+			"args": [
+				{
+					"type": "string",
+					"name": "name"
+				},
+				{
+					"type": "integer",
+					"name": "x"
+				},
+				{
+					"type": "integer",
+					"name": "y"
+				},
+				{
+					"type": "integer",
+					"name": "z"
+				}
+			],
+			"description": "Sets the special area initial position.",
+			"ex": "auto(1000)\nsetareaposition($posx, $posy, $posz)",
+			"exDescription": "Will constantly change the special area starting position to your character position coordinates."
+		}
+	]
+}

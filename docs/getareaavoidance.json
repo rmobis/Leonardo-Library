@@ -1,0 +1,17 @@
+{
+	"name": "getareaavoidance",
+	"invocations": [
+		{
+			"rettype": "integer",
+			"args": [
+				{
+					"type": "string",
+					"name": "name"
+				}
+			],
+			"description": "Returns the avoidance of a special area.",
+			"ex": "print(getareaavoidance('NewSpecialArea'))",
+			"exDescription": "Will print out the avoidance level for the special area 'NewSpecialArea'."
+		}
+	]
+}
