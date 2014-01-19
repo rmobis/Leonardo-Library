@@ -14,16 +14,14 @@
 				},
 				{
 					"type": "optional string",
-					"name": "names¹, names², names*, ..."
+					"name": "nameÂ¹, nameÂ², ..., name*"
 				},
 				{
 					"type": "optional function",
-					"name": "f"
+					"name": "filter"
 				}
 			],
-			"description": "Returns the amount of monsters found in the range distance, excluding creature names found in the list. Optionally you can add a function to filter those creatures.",
-			"ex": "if maroundfilterignore(1, false, 'Tarantula', function(cre) return cre.hppc <= 50 end) >= 3 then\n	cast('exori gran')\nend",
-			"exDescription": "Will cast exori gran if there's more than 3 creatures with health percent below 50, excluding Tarantulas."
+			"description": "Returns the amount of monsters found in the <i>range</i> distance, excluding the creature <i>names</i> found in the list. Optionally you can add a function to <i>filter</i> the amount of creatures found."
 		}
 	]
 }
