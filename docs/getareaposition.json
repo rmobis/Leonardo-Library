@@ -9,9 +9,7 @@
 					"name": "name"
 				}
 			],
-			"description": "Returns the coordinates of the given special area.",
-			"ex": "print(getareaposition('SpecialArea'))",
-			"exDescription": "Will print out the special area coordinates in the format {x = xxxxx, y = yyyyy, z = z}."
+			"description": "Returns the coordinates of a special area."
 		}
 	]
 }
