@@ -9,9 +9,7 @@
 					"name": "name"
 				}
 			],
-			"description": "Returns the special area width and height.",
-			"ex": "print(getareasize('SpecialArea'))",
-			"exDescription": "Will print out the width and height of the special area in the format {w = width, h = height}."
+			"description": "Returns the width and height of a special area."
 		}
 	]
 }
