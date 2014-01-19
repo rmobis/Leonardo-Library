@@ -2,24 +2,22 @@
 	"name": "unrust",
 	"invocations": [
 		{
-			"rettype": "void",
+			"rettype": null,
 			"args": [
 				{
-					"type": "boolean",
-					"name": "ignore"
+					"type": "optional bool",
+					"name": "ignorecommon"
 				},
 				{
-					"type": "boolean",
-					"name": "drop"
+					"type": "optional bool",
+					"name": "droptrash"
 				},
 				{
-					"type": "integer",
+					"type": "optional number",
 					"name": "value"
 				}
 			],
-			"description": "Uses rust remover on all the valid rust items found.",
-			"ex": "auto(1000)\nunrust(true, true, 500)",
-			"exDescription": "Will use rust remover on semi-rare or rare rusty items, and discard items worthless than 500 gold coins."
+			"description": "Uses rust remover on all the valid rust items found. If <i>ignorecommon</i> is given it'll avoid using on common items. If <i>droptrash</i> is given it'll drop items worthless than the <i>value</i> parameter."
 		}
 	]
 }
