@@ -2,20 +2,18 @@
 	"name": "setareaavoidance",
 	"invocations": [
 		{
-			"rettype": "integer",
+			"rettype": null,
 			"args": [
 				{
 					"type": "string",
 					"name": "name"
 				},
 				{
-					"type": "integer",
+					"type": "optional number",
 					"name": "avoidance"
 				}
 			],
-			"description": "Sets the avoidance for a special area.",
-			"ex": "setareaavoidance('SpecialArea', 100)",
-			"exDescription": "Will set the SpecialArea avoidance to 100."
+			"description": "Sets the avoidance for a special area. If avoidance is not given, sets it to 0."
 		}
 	]
 }
