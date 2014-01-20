@@ -2,30 +2,30 @@
 	"name": "getdistancebetween",
 	"invocations": [
 		{
-			"rettype": "integer",
+			"rettype": "number",
 			"args": [
 				{
-					"type": "integer",
+					"type": "number",
 					"name": "xfrom"
 				},
 				{
-					"type": "integer",
+					"type": "number",
 					"name": "yfrom"
 				},
 				{
-					"type": "integer",
+					"type": "number",
 					"name": "zfrom"
 				},
 				{
-					"type": "integer",
+					"type": "number",
 					"name": "xto"
 				},
 				{
-					"type": "integer",
+					"type": "number",
 					"name": "yto"
 				},
 				{
-					"type": "integer",
+					"type": "number",
 					"name": "zto"
 				}
 			],
