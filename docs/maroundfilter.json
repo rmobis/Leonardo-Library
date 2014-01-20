@@ -2,14 +2,14 @@
 	"name": "maroundfilter",
 	"invocations": [
 		{
-			"rettype": "integer",
+			"rettype": "number",
 			"args": [
 				{
-					"type": "integer",
+					"type": "number",
 					"name": "range"
 				},
 				{
-					"type": "optional boolean",
+					"type": "optional bool",
 					"name": "floor"
 				},
 				{
