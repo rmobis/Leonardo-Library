@@ -2,7 +2,7 @@
 	"name": "setareaposition",
 	"invocations": [
 		{
-			"rettype": "void",
+			"rettype": null,
 			"args": [
 				{
 					"type": "string",
@@ -21,9 +21,7 @@
 					"name": "z"
 				}
 			],
-			"description": "Sets the special area initial position.",
-			"ex": "auto(1000)\nsetareaposition($posx, $posy, $posz)",
-			"exDescription": "Will constantly change the special area starting position to your character position coordinates."
+			"description": "Sets the special area initial position, if positions are not given your current coordinates are used."
 		}
 	]
 }
