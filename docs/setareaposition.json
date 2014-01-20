@@ -9,15 +9,15 @@
 					"name": "name"
 				},
 				{
-					"type": "integer",
+					"type": "optional number",
 					"name": "x"
 				},
 				{
-					"type": "integer",
+					"type": "optional number",
 					"name": "y"
 				},
 				{
-					"type": "integer",
+					"type": "optional number",
 					"name": "z"
 				}
 			],
