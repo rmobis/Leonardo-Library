@@ -1,0 +1,15 @@
+{
+	"name": "getareatype",
+	"invocations": [
+		{
+			"rettype": "string",
+			"args": [
+				{
+					"type": "string",
+					"name": "name"
+				}
+			],
+			"description": "Returns the type of a special area as 'Square (Filled)' or 'Square (Border Only)'."
+		}
+	]
+}
