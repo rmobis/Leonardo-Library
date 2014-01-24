@@ -1,0 +1,19 @@
+{
+        "name": "getareaextrapolicy",
+        "invocations": [
+                {
+                        "rettype": "boolean",
+                        "args": [
+                                {
+                                        "type": "string",
+                                        "name": "name"
+                                },
+                                {
+                                        "type": "string",
+                                        "name": "policy"
+                                }
+                        ],
+                        "description": "Returns true if the special area extra policy given is enabled, false otherwise."
+                }
+        ]
+}
