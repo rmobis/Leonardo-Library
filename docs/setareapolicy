@@ -1,0 +1,19 @@
+{
+	"name": "setareapolicy",
+	"invocations": [
+		{
+			"rettype": null,
+			"args": [
+				{
+					"type": "string",
+					"name": "name"
+				},
+				{
+				  "type": "string",
+				  "name": "policy"
+				}
+			],
+			"description": "Sets the policy of a special area."
+		}
+	]
+}
