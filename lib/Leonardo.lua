@@ -35,7 +35,6 @@
             --> paroundfilterignore;
             --> unrust;
             --> antifurnituretrap;
-            --> entermachine;
             --> obfuscate; [disabled]
             --> isabletocast;
             --> cancast;
