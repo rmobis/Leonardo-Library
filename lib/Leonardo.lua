@@ -1,58 +1,62 @@
 --[[
-	Leonardo's Library
-	Created: 15/01/2014
-	Updated: 17/01/2014
-	Version: 1.2.0
+    Leonardo's Library
+    Created: 15/01/2014
+    Updated: 21/01/2014
+    Version: 1.2.1
 
-	--> Summary:
-		--> Globals and Local variables;
-		--> Local functions;
+    --> Summary:
+        --> Globals and Local variables;
+        --> Local functions;
 
-		--> Extension Class;
-			-- printf;					|
-			-- sprintf;					|
+        --> Extension Class;
+            -- printf;
+            -- sprintf;
 
-		--> Main functions:
-			--> tosec;	[fix]			|
-			--> formatnumber;			|
-			--> formattime;				|
-			--> getareaposition;		|
-			--> setareaposition;		|
-			--> getareasize;			|
-			--> setareasize;			|
-			--> getareapolicy;			|
-			--> setareapolicy;			|
-			--> getareaavoidance;		|
-			--> setareaavoidance;		|
-			--> isbinded;				|
-			--> maroundfilter;			|
-			--> maroundfilterignore;	|
-			--> paroundfilter;			|
-			--> paroundfilterignore;	|
-			--> unrust;					|
-			--> antifurnituretrap;		|
-			--> entermachine;			|
-			--> obfuscate; [disabled]	|
-			--> isabletocast;
-			--> cancast;				|
-			--> unequipitem;			|
+        --> Main functions:
+            --> tosec; [fix]
+            --> formatnumber;
+            --> formattime;
+            --> getareaposition;
+            --> setareaposition;
+            --> getareasize;
+            --> setareasize;
+            --> getareapolicy;
+            --> setareapolicy;
+            --> getareaavoidance;
+            --> setareaavoidance;
+	    --> getareaextrapolicy;
+	    --> setareaextrapolicy;
+	    --> getareatype;
+	    --> setareatype;
+            --> isbinded;
+            --> maroundfilter;
+            --> maroundfilterignore;
+            --> paroundfilter;
+            --> paroundfilterignore;
+            --> unrust;
+            --> antifurnituretrap;
+            --> entermachine;
+            --> obfuscate; [disabled]
+            --> isabletocast;
+            --> cancast;
+            --> unequipitem;
 
-		--> Fixes and Function Extensions
-			-- unequip;
-			-- cast;
-		<--
-	<--
+        --> Fixes and Function Extensions
+            -- unequip;
+            -- cast;
+        <--
+    <--
 ]]--
 
 -- GLOBALS AND LOCAL VARIABLES
 
 LIBS = LIBS or {}
-LIBS.LEONARDO = "1.2.0"
+LIBS.LEONARDO = "1.2.1"
 
 
 __CACHE = __CACHE or {
-	ANTI_FURNITURE = {_houseitems = {}, _data = {}},
-	CAN_CAST = {},
+    ANTI_FURNITURE = {_houseitems = {}, _data = {}},
+    CAN_CAST = {},
 }
 
 POLICY_NONE = 'None'
@@ -60,7 +64,11 @@ POLICY_CAVEBOT = 'Cavebot'
 POLICY_TARGETING = 'Targeting'
 POLICY_ALL = 'Cavebot & Targeting'
 
+AREA_SQUARE_FILLED = 'Square (Filled)'
+AREA_SQUARE_BORDER = 'Square (Border Only)'
+
 local SA_POLICY = {POLICY_CAVEBOT, POLICY_TARGETING, POLICY_ALL}
+local SA_TYPE = {AREA_SQUARE_FILLED, AREA_SQUARE_BORDER}
 
 local UNRUSTED_ITEMS = {3357, 3358, 3359, 3360, 3362, 3364, 3370, 3371, 3372, 3377, 3381, 3382, 3557, 3558, 8063}
 local RUST_ITEMS_COMMON = {8895, 8896, 8897, 8898, 8899}
@@ -75,676 +83,793 @@ local slotNames = {["amulet"] = "neck", ["weapon"] = "rhand", ["shield"] = "lhan
 -- LOCAL FUNCTIONS
 
 local function __crearoundf__callback(range, floor, list, cretype, ignore, f)
-	local Creatures = {}
+    local Creatures = {}
 
-	foreach creature cre cretype do
-		if f(cre) and cre.dist <= range and (cre.posz == $posz or floor) and ((not ignore and (#list == 0 or table.find(list, cre.name:lower()))) or (ignore and not table.find(list, cre.name:lower()))) then
-			table.insert(Creatures, cre)
-		end
-	end
+    foreach creature cre cretype do
+        if f(cre) and cre.dist <= range and (cre.posz == $posz or floor) and ((not ignore and (#list == 0 or table.find(list, cre.name:lower()))) or (ignore and not table.find(list, cre.name:lower()))) then
+            table.insert(Creatures, cre)
+        end
+    end
 
-	return #Creatures
+    return #Creatures
 end
 
 -- EXTENSION CLASS
 
 function printf(str, ...)
-	return print(sprintf(str, ...))
+    return print(sprintf(str, ...))
 end
 
 function sprintf(str, ...)
-	return #{...} > 0 and tostring(str):format(...) or tostring(str)
+    return #{...} > 0 and tostring(str):format(...) or tostring(str)
 end
 
 -- MAIN FUNCTIONS
 
--- @name	tosec
--- @desc				Converts a time formatted string into seconds.
--- @param	{string}	str		The string to convert
--- @returns	{number}
+-- @name    tosec
+-- @desc                Converts a time formatted string into seconds.
+-- @param   {string}    str     The string to convert
+-- @returns {number}
 
 function tosec(str) -- Working, by sirmate
-	local sum, time, units, index = 0, str:token(nil, ":"), {86400, 3600, 60, 1}, 1
-	for i = #units - #time + 1, #units do
-		sum, index = sum + ((tonumber(time[index]) or 0) * units[i]), index + 1
-	end
-	return math.max(sum, 0)
+    local sum, time, units, index = 0, str:token(nil, ":"), {86400, 3600, 60, 1}, 1
+    for i = #units - #time + 1, #units do
+        sum, index = sum + ((tonumber(time[index]) or 0) * units[i]), index + 1
+    end
+    return math.max(sum, 0)
 end
 
--- @name	formatnumber
--- @desc			Formats a number to show its units.
--- @param	{integer}	num		The number to be formatted
--- @param	{string}	sep		The symbol to separate numbers, default is ",". (optional)
--- @returns	{string}
+-- @name    formatnumber
+-- @desc            Formats a number to show its units.
+-- @param   {number}   num     The number to be formatted
+-- @param   {string}    sep     The symbol to separate numbers, default is ",". (optional)
+-- @returns {string}
 
 function formatnumber(n, s) -- Working, by sirmate
-	local result, sign, before, after, s = '', string.match(tostring(n), '^([%+%-]?)(%d*)(%.?.*)$'), s or ','
+    local result, sign, before, after, s = '', string.match(tostring(n), '^([%+%-]?)(%d*)(%.?.*)$'), s or ','
 
-	while #before > 3 do
-		result = s .. string.sub(before, -3, -1) .. result
-		before = string.sub(before, 1, -4)
-	end
+    while #before > 3 do
+        result = s .. string.sub(before, -3, -1) .. result
+        before = string.sub(before, 1, -4)
+    end
 
-	return sign .. before .. result .. after
+    return sign .. before .. result .. after
 end
 
--- @name	formattime
--- @desc			Converts a number to a date format string.
--- @param	{integer}	num		The number to be converted
--- @param	{string}	pattern	The pattern to format number, default is "DD:HH:MM:SS". (optional)
--- @returns	{string}
+-- @name    formattime
+-- @desc            Converts a number to a date format string.
+-- @param   {number}   num     The number to be converted
+-- @param   {string}    pattern The pattern to format number, default is "DD:HH:MM:SS". (optional)
+-- @returns {string}
 
 function formattime(n, pattern) -- Working, by sirmate
-	local units = {DD = math.floor(n / 86400 % 7), HH = math.floor(n / 3600 % 24), MM = math.floor(n / 60 % 60), SS = math.floor(n % 60)}
+    local units = {DD = math.floor(n / 86400 % 7), HH = math.floor(n / 3600 % 24), MM = math.floor(n / 60 % 60), SS = math.floor(n % 60)}
 
-	if not pattern then
-		if units.DD > 0 then
-			pattern = "DD:HH:MM:SS"
-		elseif units.HH > 0 then
-			pattern = "HH:MM:SS"
-		else
-			pattern = "MM:SS"
-		end
-	else
-		pattern = pattern:upper()
-	end
+    if not pattern then
+        if units.DD > 0 then
+            pattern = "DD:HH:MM:SS"
+        elseif units.HH > 0 then
+            pattern = "HH:MM:SS"
+        else
+            pattern = "MM:SS"
+        end
+    else
+        pattern = pattern:upper()
+    end
 
-	return pattern:gsub("%u%u", function(str) return string.format("%02d", units[str]) end)
+    return pattern:gsub("%u%u", function(str) return string.format("%02d", units[str]) end)
 end
 
--- @name	getareaposition
--- @desc				Returns the coordinates of the given special area.
--- @param	{string}	name	The special area name to check.
--- @returns	{table}
+-- @name    getareaposition
+-- @desc                Returns the coordinates of the given special area.
+-- @param   {string}    name    The special area name to check.
+-- @returns {table}
 
 function getareaposition(name) -- working
-	foreach settingsentry e 'Cavebot/SpecialAreas' do
-		if getsetting(e, 'Name'):lower() == name:lower() then
-			local x, y, z = getsetting(e, 'Coordinates'):match('.-(%d+).-(%d+).-(%d+)')
-			return {x = tonumber(x), y = tonumber(y), z = tonumber(z)}
-		end
-	end
-	return {x = 0, y = 0, z = 0}
+    foreach settingsentry e 'Cavebot/SpecialAreas' do
+        if getsetting(e, 'Name'):lower() == name:lower() then
+            local x, y, z = getsetting(e, 'Coordinates'):match('.-(%d+).-(%d+).-(%d+)')
+            return {x = tonumber(x), y = tonumber(y), z = tonumber(z)}
+        end
+    end
+    return {x = 0, y = 0, z = 0}
 end
 
--- @name	setareaposition
--- @desc				Sets the special area initial position.
--- @param	{string}	name	The special area name.
--- @param	{integer}	x		The special area x coordinate. (optional)
--- @param	{integer}	y		The special area y coordinate. (optional)
--- @param	{integer}	z		The special area z coordinate. (optional)
--- @returns	{void}
+-- @name    setareaposition
+-- @desc                Sets the special area initial position.
+-- @param   {string}    name    The special area name.
+-- @param   {number}   x       The special area x coordinate. (optional)
+-- @param   {number}   y       The special area y coordinate. (optional)
+-- @param   {number}   z       The special area z coordinate. (optional)
+-- @returns {null}
 
 function setareaposition(name, x, y, z) -- Working
-	x, y, z = tonumber(x) or $posx, tonumber(y) or $posy, tonumber(z) or $posz
+    x, y, z = tonumber(x) or $posx, tonumber(y) or $posy, tonumber(z) or $posz
 
-	foreach settingsentry e 'Cavebot/SpecialAreas' do
-		local areaname = getsetting(e, 'Name')
+    foreach settingsentry e 'Cavebot/SpecialAreas' do
+        local areaname = getsetting(e, 'Name')
 
-		if areaname:lower() == name:lower() then
-			return setsetting(sprintf("Cavebot/SpecialAreas/%s/Coordinates", areaname), sprintf("x:%s, y:%s, z:%s", x, y, z))
-		end
-	end
+        if areaname:lower() == name:lower() then
+            return setsetting(sprintf("Cavebot/SpecialAreas/%s/Coordinates", areaname), sprintf("x:%s, y:%s, z:%s", x, y, z))
+        end
+    end
 end
 
--- @name	getareasize
--- @desc				Returns the special area width and height.
--- @param	{string}	name	The special area name.
--- @returns	{table}
+-- @name    getareasize
+-- @desc                Returns the special area width and height.
+-- @param   {string}    name    The special area name.
+-- @returns {table}
 
 function getareasize(name) -- working
-	foreach settingsentry e 'Cavebot/SpecialAreas' do
-		if getsetting(e, 'Name'):lower() == name:lower() then
-			local w, h = getsetting(e, 'Size'):match('(%d+).-(%d+)')
-			return {w = tonumber(w), h = tonumber(h)}
-		end
-	end
+    foreach settingsentry e 'Cavebot/SpecialAreas' do
+        if getsetting(e, 'Name'):lower() == name:lower() then
+            local w, h = getsetting(e, 'Size'):match('(%d+).-(%d+)')
+            return {w = tonumber(w), h = tonumber(h)}
+        end
+    end
 
-	return {w = 0, h = 0}
+    return {w = 0, h = 0}
 end
 
--- @name	setareasize
--- @desc				Sets the width and height for a special area.
--- @param	{string}	name	The special area name.
--- @param	{integer}	width	The width lenght. (optional)
--- @param	{integer}	height	The height lenght. (optional)
--- @returns	{void}
+-- @name    setareasize
+-- @desc                Sets the width and height for a special area.
+-- @param   {string}    name    The special area name.
+-- @param   {number}   width   The width lenght. (optional)
+-- @param   {number}   height  The height lenght. (optional)
+-- @returns {null}
 
 function setareasize(name, w, h) -- working
-	h, w = tonumber(h) or 1, tonumber(w) or 1
+    h, w = tonumber(h) or 1, tonumber(w) or 1
 
-	foreach settingsentry e 'Cavebot/SpecialAreas' do
-		local areaname = getsetting(e, 'Name')
+    foreach settingsentry e 'Cavebot/SpecialAreas' do
+        local areaname = getsetting(e, 'Name')
 
-		if areaname:lower() == name:lower() then
-			return setsetting(sprintf("Cavebot/SpecialAreas/%s/Size", areaname), sprintf('%d to %d', w, h))
-		end
-	end
+        if areaname:lower() == name:lower() then
+            return setsetting(sprintf("Cavebot/SpecialAreas/%s/Size", areaname), sprintf('%d to %d', w, h))
+        end
+    end
 end
 
--- @name	getareapolicy
--- @desc				Returns the policy of a special area.
--- @param	{string}	name	The special area name.
--- @returns	{string}
+-- @name    getareapolicy
+-- @desc                Returns the policy of a special area.
+-- @param   {string}    name    The special area name.
+-- @returns {string}
 
 function getareapolicy(name) -- working
-	foreach settingsentry e 'Cavebot/SpecialAreas' do
-		if getsetting(e, 'Name'):lower() == name:lower() then
-			return getsetting(e, "Policy")
-		end
-	end
+    foreach settingsentry e 'Cavebot/SpecialAreas' do
+        if getsetting(e, 'Name'):lower() == name:lower() then
+            return getsetting(e, "Policy")
+        end
+    end
 
-	return POLICY_NONE
+    return POLICY_NONE
 end
 
--- @name	getareapolicy
--- @desc				Sets the policy of a special area.
--- @param	{string}	name	The special area name.
--- @param	{string}		policy	The policy to setsetting. 'Cavebot', 'Targeting', 'Cavebot & Targeting' or 'None'. (optional)
--- @returns	{void}
+-- @name    getareapolicy
+-- @desc                Sets the policy of a special area.
+-- @param   {string}    name    The special area name.
+-- @param   {string}        policy  The policy to setsetting. 'Cavebot', 'Targeting', 'Cavebot & Targeting' or 'None'. (optional)
+-- @returns {null}
 
 function setareapolicy(name, policy) -- working
-	if type(policy) == 'string' and not table.find({"cavebot", "cavebot & targeting", "targeting", "none"}, policy:lower()) then
-		policy = "None"
-	elseif type(policy) == 'number' and policy > 0 and policy <= 3 then
-		policy = SA_POLICY[policy]
-	else
-		policy = "None"
-	end
+    if type(policy) == 'string' and not table.find({"cavebot", "cavebot & targeting", "targeting", "none"}, policy:lower()) then
+        policy = "None"
+    elseif type(policy) == 'number' and policy > 0 and policy <= 3 then
+        policy = SA_POLICY[policy]
+    else
+        policy = "None"
+    end
 
-	foreach settingsentry e 'Cavebot/SpecialAreas' do
-		local areaname = getsetting(e, 'Name')
+    foreach settingsentry e 'Cavebot/SpecialAreas' do
+        local areaname = getsetting(e, 'Name')
 
-		if areaname:lower() == name then
-			return setsetting(sprintf('Cavebot/SpecialAreas/%s/Policy', areaname), policy)
-		end
-	end
+        if areaname:lower() == name then
+            return setsetting(sprintf('Cavebot/SpecialAreas/%s/Policy', areaname), policy)
+        end
+    end
 end
 
--- @name	getareaavoidance
--- @desc				Returns the avoidance of a special area.
--- @param	{string}	name	The special area name.
--- @returns	{integer}
+-- @name    getareaavoidance
+-- @desc                Returns the avoidance of a special area.
+-- @param   {string}    name    The special area name.
+-- @returns {number}
 
 function getareaavoidance(name) -- working
-	foreach settingsentry e 'Cavebot/SpecialAreas' do
-		if getsetting(e, 'Name'):lower() == name:lower() then
-			return tonumber(getsetting(e, 'Avoidance'))
-		end
-	end
+    foreach settingsentry e 'Cavebot/SpecialAreas' do
+        if getsetting(e, 'Name'):lower() == name:lower() then
+            return tonumber(getsetting(e, 'Avoidance'))
+        end
+    end
 
-	return 0
+    return 0
 end
 
--- @name	setareaavoidance
--- @desc				Sets the avoidance for a special area.
--- @param	{string}	name		The special area name.
--- @param	{integer}	avoidance	The avoidance level. Minimum of 0 and maximum of 250. (optional)
--- @returns	{integer}
+-- @name    setareaavoidance
+-- @desc                Sets the avoidance for a special area.
+-- @param   {string}    name        The special area name.
+-- @param   {number}   avoidance   The avoidance level. Minimum of 0 and maximum of 250. (optional)
+-- @returns {number}
 
 function setareaavoidance(name, avoid) -- working
-	avoid = tonumber(avoid) or 0
+    avoid = tonumber(avoid) or 0
+
+    foreach settingsentry e 'Cavebot/SpecialAreas' do
+        local areaname = getsetting(e, 'Name')
+
+        if areaname:lower() == name then
+            return setsetting(sprintf('Cavebot/SpecialAreas/%s/Avoidance', areaname), math.max(avoid, 0))
+        end
+    end
+end
+
+-- @name    getareaextrapolicy
+-- @desc                Returns true if the extra policy given is enabled, false otherwise.
+-- @param   {string}    name    The special area name.
+-- @param	{string}	type    The extra policy type as 'loot', 'lure', 'looting' or 'luring'.
+-- @returns {boolean}
+
+function getareaextrapolicy(name, poltype)
+	local t = type(poltype)
+	poltype, name = t == 'string' and poltype:lower() or false, name:lower()
+
+	if poltype then
+		if poltype:match('loot') then
+			poltype = 'IgnoreWhenLooting'
+		elseif poltype:match('luring') or poltype:match('lure') then
+			poltype = 'IgnoreWhenLuring'
+		else
+			return printerrorf("bad argument #2 to 'getareaextrapolicy', ('Lure', 'Loot', 'Luring' or 'Looting' expected, got '%s')", poltype)
+		end
+	else
+		return printerrorf("bad argument #2 to 'getareaextrapolicy', (string expected, got '%s')", t)
+	end
+
 
 	foreach settingsentry e 'Cavebot/SpecialAreas' do
-		local areaname = getsetting(e, 'Name')
-
-		if areaname:lower() == name then
-			return setsetting(sprintf('Cavebot/SpecialAreas/%s/Avoidance', areaname), math.max(avoid, 0))
-		end
-	end
-end
-
--- @name	isbinded
--- @desc				Check if you have the current hotkeys binded on functions keyboard.
--- @param	{array}		bind¹, bind², ..., bind*	The list of the hotkeys to check.
--- @returns	{boolean}
-
-function isbinded(...) -- working
-	local temp, i, arg, info = {}, 1, {...}
-
-	while arg[i] do
-		if type(arg[i]) == 'table' then
-			info = spellinfo(arg[i][1])
-			temp[i] = {key = arg[i][1], type = #info.words > 0 and info.itemid == 0, force = arg[i][2]}
-		else
-			info = spellinfo(arg[i])
-			temp[i] = {key = arg[i], type = #info.words > 0 and info.itemid == 0, force = "all"}
-		end
-		i = i + 1
-	end
-
-	for _, entry in ipairs(temp) do
-		local func, params = clientitemhotkey, {"self", "target", "crosshair"}
-
-		if entry.type then
-			func, params = clienttexthotkey, {"automatic", "manual"}
-		end
-
-		if entry.force and not table.find(params, entry.force:lower()) then
-			entry.force = 'all'
-		end
-
-		if func(entry.key, entry.force) == 'not found' then
-			return false
-		end
-	end
-
-	return true
-end
-
--- @name	maroundfilter
--- @desc				Returns the amount of monsters found in the range distance. Optionally you can add a function to filter those creatures.
--- @param	{integer}	range	The minimum distance range. (optional)
--- @param	{boolean}	floor	Set true to consider all floors or false to consider on the current floor. (optional)
--- @param	{array}		name¹, name², name*, ...	The creature names list to consider. (optional)
--- @param	{function}	The filter function. (optional)
--- @returns	{integer}
-
-function maroundfilter(range, floor, ...) -- Working
-	local Creatures, Callback = {...}, function(c) return true end
-
-	if type(floor) == 'string' then
-		table.insert(Creatures, floor)
-		floor = false
-	end
-
-	if type(range) == 'boolean' then
-		floor = range
-		range = 7
-	elseif type(range) == 'string' then
-		table.insert(Creatures, range)
-		range = 7
-	end
-
-	if type(Creatures[#Creatures]) == 'function' then
-		Callback = table.remove(Creatures)
-	end
-
-	table.lower(Creatures)
-
-	return __crearoundf__callback(range, floor, Creatures, 'mx', false, Callback)
-end
-
--- @name	maroundfilterignore
--- @desc				Returns the amount of monsters found in the range distance, excluding the creatures names found in the list. Optionally you can add a function to filter those creatures.
--- @param	{integer}	range	The minimum distance range. (optional)
--- @param	{boolean}	floor	Set true to consider all floors or false to consider on the current floor. (optional)
--- @param	{array}		name¹, name², name*, ...	The creature names list to disconsider. (optional)
--- @param	{function}	func	The filter function. (optional)
--- @returns	{integer}
-
-function maroundfilterignore(range, floor, ...) -- Working
-	local Creatures, Callback = {...}, function(c) return true end
-
-	if type(floor) == 'string' then
-		table.insert(Creatures, floor)
-		floor = false
-	end
-
-	if type(range) == 'boolean' then
-		floor = range
-		range = 7
-	elseif type(range) == 'string' then
-		table.insert(Creatures, range)
-		range = 7
-	end
-
-	if type(Creatures[#Creatures]) == 'function' then
-		Callback = table.remove(Creatures)
-	end
-
-	table.lower(Creatures)
-
-	return __crearoundf__callback(range, floor, Creatures, 'mx', true, Callback)
-end
-
--- @name	paroundfilter
--- @desc				Returns the amount of players found in the range distance, excluding the creatures names found in the list. Optionally you can add a function to filter those creatures.
--- @param	{integer}	range	The minimum distance range. (optional)
--- @param	{boolean}	floor	Set true to consider all floors or false to consider on the current floor. (optional)
--- @param	{array}		name¹, name², name*, ...	The creature names list to consider. (optional)
--- @param	{function}	func	The filter function. (optional)
--- @returns	{integer}
-
-function paroundfilter(range, floor, ...) -- Working
-	local Creatures, Callback = {...}, function(c) return true end
-
-	if type(floor) == 'string' then
-		table.insert(Creatures, floor)
-		floor = false
-	end
-
-	if type(range) == 'boolean' then
-		floor = range
-		range = 7
-	elseif type(range) == 'string' then
-		table.insert(Creatures, range)
-		range = 7
-	end
-
-	if type(Creatures[#Creatures]) == 'function' then
-		Callback = table.remove(Creatures)
-	end
-
-	table.lower(Creatures)
-
-	return __crearoundf__callback(range, floor, Creatures, 'px', false, Callback)
-end
-
--- @name	paroundfilterignore
--- @desc				Returns the amount of players found in the range distance, excluding the creature names found in the list. Optionally you can add a function to filter those creatures.
--- @param	{integer}	range	The minimum distance range. (optional)
--- @param	{boolean}	floor	Set true to consider all floors or false to consider on the current floor. (optional)
--- @param	{array}		name¹, name², name*, ...	The creature names list to disconsider. (optional)
--- @param	{function}	func	The filter function. (optional)
--- @returns	{integer}
-
-function paroundfilterignore(range, floor, ...) -- Working
-	local Creatures, Callback = {...}, function(c) return true end
-
-	if type(floor) == 'string' then
-		table.insert(Creatures, floor)
-		floor = false
-	end
-
-	if type(range) == 'boolean' then
-		floor = range
-		range = 7
-	elseif type(range) == 'string' then
-		table.insert(Creatures, range)
-		range = 7
-	end
-
-	if type(Creatures[#Creatures]) == 'function' then
-		Callback = table.remove(Creatures)
-	end
-
-	table.lower(Creatures)
-
-	return __crearoundf__callback(range, floor, Creatures, 'px', true, Callback)
-end
-
--- @name	unrust
--- @desc				Uses rust remover on all the valid rust items found.
--- @param	{boolean}	ignore	Set true to ignore common rust items or false to consider this type.
--- @param	{boolean}	drop	Set true to drop trash items.
--- @param	{integer}	value	Set the minimum value to consider items below this value as trash. (optional)
--- @returns	{void}
--- @todo	Add rust remover to the used items;
-
-function unrust(ignore, drop, value) -- Working
-	local IgnoreCommon = ignore or true
-	local DropTrash = drop or true
-	local MinValue = math.max(value or 0, 0)
-
-	if itemcount(9016) == 0 and clientitemhotkey(9016, "crosshair") == 'not found' then
-		return nil
-	end
-
-	local Amount, Trash = {}, {}
-
-	for _, Item in ipairs(UNRUSTED_ITEMS) do
-		if itemvalue(Item) > MinValue then
-			Amount[Item] = itemcount(Item)
-		else
-			table.insert(Trash, Item)
-		end
-	end
-
-	local RustyItems = IgnoreCommon and RUST_ITEMS_RARE or RUST_ITEMS_COMMON
-
-	for _, Item in ipairs(RustyItems) do
-		if itemcount(Item) > 0 then
-			useitemon(9016, Item, '0-15') waitping()
-			increaseamountused(9016, 1)
-		end
-	end
-
-	if DropTrash then
-		for _, Item in ipairs(Trash) do
-			if itemcount(Item) > 0 then
-				moveitems(Item, "ground") waitping()
-			end
-		end
-	end
-
-	for Item, Count in pairs(Amount) do
-		local Current = itemcount(Item)
-
-		if Current > Count then
-			Amount[Item] = Current
-
-			increaseamountlooted(Item, Current - Count)
-		end
-	end
-end
-
--- @name	antifurnituretrap
--- @desc				Breaks all the destructible items that block the path of your character.
--- @param	{mixed}		weapon	The weapon name or ID to use.
--- @param	{integer}	time	The maximum time to wait before start breaking items.
--- @returns	{void}
-
-function antifurnituretrap(weapon, time) -- Working
-	local Weapon = weapon or 'machete'
-	local MaxWait = math.max(time or 0, 0)
-
-	if clientitemhotkey(Weapon, "crosshair") == 'not found' and itemcount(Weapon) == 0 then
-		return nil
-	end
-
-	__CACHE.ANTI_FURNITURE._data = {}
-
-	for x = SCREEN_LEFT, SCREEN_RIGHT do
-		for y = SCREEN_TOP, SCREEN_BOTTOM do
-			local pos, house = {x = x + $posx, y = y + $posy, z = $posz}, false
-			local info = iteminfo(topitem(pos.x, pos.y, pos.z).id)
-
-			if info.isunpass and not info.isunmove and tilereachable(pos.x, pos.y, pos.z, false) then
-				for _, item in ipairs(__CACHE.ANTI_FURNITURE._houseitems) do
-					if item.x == pos.x and item.y == pos.y and item.z == pos.z then
-						house = true
-						break
-					end
-				end
-
-				if not house then
-					table.insert(__CACHE.ANTI_FURNITURE._data, {x = pos.x, y = pos.y, z = pos.z, id = info.id})
-				end
-			end
-		end
-	end
-
-	table.sort(__CACHE.ANTI_FURNITURE._data, function(a, b)
-		if math.max(math.abs($posx - a.x), math.abs($posy - a.y)) == math.max(math.abs($posx - b.x), math.abs($posy - b.y)) then
-			if math.abs($posx - a.x) == math.abs($posx - b.x) then
-				if math.abs($posy - a.y) == math.abs($posy - b.y) then
-					return a.id < b.id
-				else
-					return math.abs($posy - a.y) < math.abs($posy - b.y)
-				end
-			else
-				return math.abs($posx - a.x) < math.abs($posx - b.x)
-			end
-		else
-			return math.max(math.abs($posx - a.x), math.abs($posy - a.y)) < math.max(math.abs($posx - b.x), math.abs($posy - b.y))
-		end
-	end)
-
-	if $standtime >= MaxWait * 1000 then
-		for i, item in pairs(__CACHE.ANTI_FURNITURE._data) do
-			local x, y, z, id, house = item.x, item.y, item.z, item.id, false
-
-			reachlocation(x, y, z) waitping()
-
-			while id == topitem(x, y, z).id and tilereachable(x, y, z, false) do
-				useitemon(Weapon, id, ground(x, y, z)) waitping(1.9, 2.1)
-
-				foreach newmessage m do
-					if m.content:match("You are not invited") then
-						house = table.remove(__CACHE.ANTI_FURNITURE._data, i)
-						break
-					end
-				end
-
-				if house then
-					return table.insert(__CACHE.ANTI_FURNITURE._houseitems, house)
-				end
-			end
-		end
-	end
-end
-
--- @name	getdistancebetween
--- @desc				Returns the distance between positions given or -1 if it's not located on the same floor.
--- @param	{mixed}		x	The x-axis position or the table with starting coordinates.
--- @param	{mixed}		y	The y-axis position or the table with destiny coordinates.
--- @param	{integer}	z	The z-axis position.
--- @param	{integer}	a	The x-axis destiny position.
--- @param	{integer}	b	The y-axis destiny position.
--- @param	{integer}	c	The z-axis destiny position.
--- @returns	{integer}
-
-function getdistancebetween(x, y, z, a, b, c) -- Working
-	if type(x) == 'table' and type(y) == 'table' and not (z and a and b and c) then
-		if x.x and y.x then
-			x,y,z,a,b,c = x.x, x.y, x.z, y.x, y.y, y.z
-		elseif #x == 3 and #y == 3 then
-			x,y,z,a,b,c = x[1], x[2], x[3], y[1], y[2], y[3]
-		else
-			return -1
-		end
-	end
-
-	return z == c and math.max(math.abs(x - a), math.abs(y - b)) or -1
-end
-
--- @name	obfuscate
--- @desc				Generates a obfuscated code that contains the function given.
--- @param	{function}	func	The function to be obfuscated.
--- @returns	{string}
--- @todo uncomment function when pcall and string.dump are added;
-
---function obfuscate(f)
---	local buff, script = "", string.dump(f())
---
---	for i = 1, script:len() do
---		buff = buff .. '\\' .. string.byte(script, i)
---	end
---
---	return buff
---end
-
--- @name	isabletocast
--- @desc				Returns true if you are able to cast spell given.
--- @param	{mixed}	spell	The spell object, name or words.
--- @returns	{boolean}
-
-function isabletocast(spell) -- Working
-	spell = type(spell) == 'table' and spell or spellinfo(spell)
-	return $level >= spell.level and $mp >= spell.mp and $soul >= spell.soul and cooldown(spell.words) == 0
-end
-
--- @name	cancast
--- @desc				Returns true if you are able to cast spell given and if the duration period for that spell has been depleted, optionally you can check if it's able to cast on to a creature.
--- @param	{mixed}	spell	The spell object, name or words.
--- @param	{mixed}	creature	The creature object, name or ID.
--- @returns	{boolean}
-
-function cancast(spell, creature) -- Working
-	spell = type(spell) == 'table' and spell or spellinfo(spell)
-	local CooldownControl, strike = __CACHE.CAN_CAST[spell.name:lower()] or 0, false
-
-	if creature then
-		creature = type(creature) == 'userdata' and creature or findcreature(creature)
-
-		if spell.castarea ~= 'None' and spell.castarea ~= '' then
-			if table.find({"holy flash", "divine missile", "lightning", "ice strike", "flame strike", "terra strike", "energy strike", "strong ice strike", "strong flame strike", "strong terra strike", "strong energy strike", "ultimate ice strike", "ultimate flame strike", "ultimate terra strike", "ultimate energy strike", "physical strike"}, spell.name:lower()) then
-				strike = 'Strike'
-			end
-		else
-			strike = spell.castarea
-		end
-	end
-
-	return (not strike or isonspellarea(strike, creature, 'any')) and $timems >= CooldownControl and $level >= spell.level and $mp >= spell.mp and $soul >= spell.soul and cooldown(spell.words) == 0
-end
-
--- @name	unequipitem
--- @desc				Unequip an item located at the equipment slot given.
--- @param	{string}	slot	The equipment slot name.
--- @param	{string}	bp		The backpack to move item on. (optional)
--- @param	{integer}	amount	The amount of items to move on. (optional)
--- @returns	{void}
-
-function unequipitem(slot, bp, amount) -- Working
-	slot = slotNames[slot:lower()] or slot:lower()
-	local item = loadstring(sprintf("return $%s", slot))()
-
-	if item and item.id > 0 then
-		if type(bp) == 'number' then
-			amount = bp
-			bp = '0-15'
-		elseif not amount then
-			amount = item.count
-		end
-
-		return moveitems(item.id, bp, slot, amount)
-	end
-end
-
--- @name	isinsidearea
--- @desc				Returns true if you are located inside an area with the range coordinates given.
--- @param	{table}		area¹, area², ..., area*	The area(s) range(s) in the format: {minimum x, maximum x, minimum y, maximum y, z}.
--- @returns	{boolean}
-
-function isinsidearea(...) -- Working
-	local SpecialAreas = {...}
-
-	if #SpecialAreas == 1 and type(SpecialAreas[1][1]) == 'table' then
-		SpecialAreas = SpecialAreas[1]
-	end
-
-	for i, area in ipairs(SpecialAreas) do
-		if #area == 5 then
-			local a,b,c,d,e = unpack(area)
-
-			if $posz == e and $posx <= b and $posx >= a and $posy <= d and $posy >= c then
-				return true
-			end
-		end
-	end
+        local areaname = getsetting(e, 'Name')
+
+        if areaname:lower() == name then
+            return getsetting(sprintf('Cavebot/SpecialAreas/%s/%s', areaname, poltype)) == 'yes'
+        end
+    end
 
 	return false
 end
 
--- @name	pvpworld
--- @desc				Returns true if you are in a player versus player world, false otherwise.
--- @returns	{boolean}
+-- @name    setareaextrapolicy
+-- @desc                Sets the extra policy for a special area.
+-- @param   {string}    name        The special area name.
+-- @param   {various}   poltype     The policy type as 'loot', 'lure', 'looting' or 'luring'.
+-- @param	{various}   t           The value to turn option on or off as any true value or false value.
+-- @returns {null}
 
-function pvpworld() -- Working
-	return table.find({"Astera", "Calmera", "Candia", "Celesta", "Fidera", "Guardia", "Harmonia", "Honera", "Luminera", "Magera", "Menera", "Nerana", "Olympa", "Pacera", "Refugia", "Secura", "Unitera"}, $worldname) == nil
-end
+function setareaextrapolicy(name, poltype, t)
+	local typ = type(poltype)
+	poltype, name = typ == 'string' and poltype:lower() or false, name:lower()
 
--- @name	checklocation
--- @desc				Checks if you are inside the waypoint location within the range given, if not goes to the label of section given, if section and label are not given, returns false or true if you are inside the location.
--- @param	{integer}	dist	The area range distance.
--- @param	{mixed}		label	The label name or ID to go. (optional)
--- @param	{string}	section	The label section name. (optional)
--- @returns	{boolean}
-
-function checklocation(dist, label, section) -- Working
-	dist = type(dist) == 'number' and dist or 1
-
-	if not ($posx <= $wptx + dist and $posx >= $wptx-dist and $posy <= $wpty + dist and $posy >= $wpty - dist and $posz == $wptz) then
-		if not (label and section) then
-			return false
+	if poltype then
+		if poltype:match('loot') then
+			poltype = 'IgnoreWhenLooting'
+		elseif poltype:match('luring') or poltype:match('lure') then
+			poltype = 'IgnoreWhenLuring'
 		else
-			gotolabel(label, section)
+			return printerrorf("bad argument #2 to 'getareaextrapolicy', ('Lure', 'Loot', 'Luring' or 'Looting' expected, got '%s')", poltype)
 		end
+	else
+		return printerrorf("bad argument #2 to 'getareaextrapolicy', (string expected, got '%s')", typ)
 	end
 
-	return true
+
+	foreach settingsentry e 'Cavebot/SpecialAreas' do
+        local areaname = getsetting(e, 'Name')
+
+        if areaname:lower() == name then
+            return setsetting(sprintf('Cavebot/SpecialAreas/%s/%s', areaname, poltype), toyesno(t))
+        end
+    end
+end
+
+-- @name    getareatype
+-- @desc                Returns the type name of a special area.
+-- @param   {string}    name     The special area name.
+-- @returns {string}
+
+function getareatype(name)
+	name = name:lower()
+
+	foreach settingsentry e 'Cavebot/SpecialAreas' do
+        local areaname = getsetting(e, 'Name')
+
+        if areaname:lower() == name then
+            return getsetting(sprintf('Cavebot/SpecialAreas/%s/Type', areaname))
+        end
+    end
+
+	return nil
+end
+
+-- @name    setareatype
+-- @desc                Sets the type of a special area.
+-- @param   {string}    name     The special area name.
+-- @param   {various}   type     The area type as 'filled' or 'border', 1 for filled or 2 for border.
+-- @returns {null}
+
+function setareatype(name, areatype)
+	name = name:lower()
+	local t = type(areatype)
+
+	if t == 'string' then
+		areatype = areatype:lower()
+
+		if areatype:match('filled') then
+			areatype = AREA_SQUARE_FILLED
+		elseif areatype:match('border') then
+			areatype = AREA_SQUARE_BORDER
+		else
+			return printerrorf("bad argument #2 to 'setareatype' ('Filled', 'Border', 'Square (Filled)' or 'Square (Border Only)' expected, got %s)", areatype)
+		end
+	elseif t == 'number' and areatype == 1 or areatype == 2 then
+		areatype = SA_TYPE[areatype]
+	else
+		return printerrorf("bad argument #2 to 'setareatype' (string or number (1-2) expected, got %s%s)", t, areatype > 2 and " different than the value expected" or '')
+	end
+
+	foreach settingsentry e 'Cavebot/SpecialAreas' do
+        local areaname = getsetting(e, 'Name')
+
+        if areaname:lower() == name then
+            return setsetting(sprintf('Cavebot/SpecialAreas/%s/Type', areaname), areatype)
+        end
+    end
+end
+
+-- @name    isbinded
+-- @desc                Check if you have the current hotkeys binded on functions keyboard.
+-- @param   {array}     bindÂ¹, bindÂ², ..., bind*    The list of the hotkeys to check.
+-- @returns {boolean}
+
+function isbinded(...) -- working
+    local temp, i, arg, info = {}, 1, {...}
+
+    while arg[i] do
+        if type(arg[i]) == 'table' then
+            info = spellinfo(arg[i][1])
+            temp[i] = {key = arg[i][1], type = #info.words > 0 and info.itemid == 0, force = arg[i][2]}
+        else
+            info = spellinfo(arg[i])
+            temp[i] = {key = arg[i], type = #info.words > 0 and info.itemid == 0, force = "all"}
+        end
+        i = i + 1
+    end
+
+    for _, entry in ipairs(temp) do
+        local func, params = clientitemhotkey, {"self", "target", "crosshair"}
+
+        if entry.type then
+            func, params = clienttexthotkey, {"automatic", "manual"}
+        end
+
+        if entry.force and not table.find(params, entry.force:lower()) then
+            entry.force = 'all'
+        end
+
+        if func(entry.key, entry.force) == 'not found' then
+            return false
+        end
+    end
+
+    return true
+end
+
+-- @name    maroundfilter
+-- @desc                Returns the amount of monsters found in the range distance. Optionally you can add a function to filter those creatures.
+-- @param   {number}   range   The minimum distance range. (optional)
+-- @param   {boolean}   floor   Set true to consider all floors or false to consider on the current floor. (optional)
+-- @param   {array}     nameÃ‚Â¹, nameÃ‚Â², name*, ...    The creature names list to consider. (optional)
+-- @param   {function}  The filter function. (optional)
+-- @returns {number}
+
+function maroundfilter(range, floor, ...) -- Working
+    local Creatures, Callback = {...}, function(c) return true end
+
+    if type(floor) == 'string' then
+        table.insert(Creatures, floor)
+        floor = false
+    end
+
+    if type(range) == 'boolean' then
+        floor = range
+        range = 7
+    elseif type(range) == 'string' then
+        table.insert(Creatures, range)
+        range = 7
+    end
+
+    if type(Creatures[#Creatures]) == 'function' then
+        Callback = table.remove(Creatures)
+    end
+
+    table.lower(Creatures)
+
+    return __crearoundf__callback(range, floor, Creatures, 'mx', false, Callback)
+end
+
+-- @name    maroundfilterignore
+-- @desc                Returns the amount of monsters found in the range distance, excluding the creatures names found in the list. Optionally you can add a function to filter those creatures.
+-- @param   {number}   range   The minimum distance range. (optional)
+-- @param   {boolean}   floor   Set true to consider all floors or false to consider on the current floor. (optional)
+-- @param   {array}     nameÃ‚Â¹, nameÃ‚Â², name*, ...    The creature names list to disconsider. (optional)
+-- @param   {function}  func    The filter function. (optional)
+-- @returns {number}
+
+function maroundfilterignore(range, floor, ...) -- Working
+    local Creatures, Callback = {...}, function(c) return true end
+
+    if type(floor) == 'string' then
+        table.insert(Creatures, floor)
+        floor = false
+    end
+
+    if type(range) == 'boolean' then
+        floor = range
+        range = 7
+    elseif type(range) == 'string' then
+        table.insert(Creatures, range)
+        range = 7
+    end
+
+    if type(Creatures[#Creatures]) == 'function' then
+        Callback = table.remove(Creatures)
+    end
+
+    table.lower(Creatures)
+
+    return __crearoundf__callback(range, floor, Creatures, 'mx', true, Callback)
+end
+
+-- @name    paroundfilter
+-- @desc                Returns the amount of players found in the range distance, excluding the creatures names found in the list. Optionally you can add a function to filter those creatures.
+-- @param   {number}   range   The minimum distance range. (optional)
+-- @param   {boolean}   floor   Set true to consider all floors or false to consider on the current floor. (optional)
+-- @param   {array}     nameÃ‚Â¹, nameÃ‚Â², name*, ...    The creature names list to consider. (optional)
+-- @param   {function}  func    The filter function. (optional)
+-- @returns {number}
+
+function paroundfilter(range, floor, ...) -- Working
+    local Creatures, Callback = {...}, function(c) return true end
+
+    if type(floor) == 'string' then
+        table.insert(Creatures, floor)
+        floor = false
+    end
+
+    if type(range) == 'boolean' then
+        floor = range
+        range = 7
+    elseif type(range) == 'string' then
+        table.insert(Creatures, range)
+        range = 7
+    end
+
+    if type(Creatures[#Creatures]) == 'function' then
+        Callback = table.remove(Creatures)
+    end
+
+    table.lower(Creatures)
+
+    return __crearoundf__callback(range, floor, Creatures, 'px', false, Callback)
+end
+
+-- @name    paroundfilterignore
+-- @desc                Returns the amount of players found in the range distance, excluding the creature names found in the list. Optionally you can add a function to filter those creatures.
+-- @param   {number}   range   The minimum distance range. (optional)
+-- @param   {boolean}   floor   Set true to consider all floors or false to consider on the current floor. (optional)
+-- @param   {array}     nameÃ‚Â¹, nameÃ‚Â², name*, ...    The creature names list to disconsider. (optional)
+-- @param   {function}  func    The filter function. (optional)
+-- @returns {number}
+
+function paroundfilterignore(range, floor, ...) -- Working
+    local Creatures, Callback = {...}, function(c) return true end
+
+    if type(floor) == 'string' then
+        table.insert(Creatures, floor)
+        floor = false
+    end
+
+    if type(range) == 'boolean' then
+        floor = range
+        range = 7
+    elseif type(range) == 'string' then
+        table.insert(Creatures, range)
+        range = 7
+    end
+
+    if type(Creatures[#Creatures]) == 'function' then
+        Callback = table.remove(Creatures)
+    end
+
+    table.lower(Creatures)
+
+    return __crearoundf__callback(range, floor, Creatures, 'px', true, Callback)
+end
+
+-- @name    unrust
+-- @desc                Uses rust remover on all the valid rust items found.
+-- @param   {boolean}   ignore  Set true to ignore common rust items or false to consider this type.
+-- @param   {boolean}   drop    Set true to drop trash items.
+-- @param   {number}   value   Set the minimum value to consider items below this value as trash. (optional)
+-- @returns {null}
+-- @todo    Add rust remover to the used items;
+
+function unrust(ignore, drop, value) -- Working
+    local IgnoreCommon = ignore or true
+    local DropTrash = drop or true
+    local MinValue = math.max(value or 0, 0)
+
+    if itemcount(9016) == 0 and clientitemhotkey(9016, "crosshair") == 'not found' then
+        return nil
+    end
+
+    local Amount, Trash = {}, {}
+
+    for _, Item in ipairs(UNRUSTED_ITEMS) do
+        if itemvalue(Item) > MinValue then
+            Amount[Item] = itemcount(Item)
+        else
+            table.insert(Trash, Item)
+        end
+    end
+
+    local RustyItems = IgnoreCommon and RUST_ITEMS_RARE or RUST_ITEMS_COMMON
+
+    for _, Item in ipairs(RustyItems) do
+        if itemcount(Item) > 0 then
+            useitemon(9016, Item, '0-15') waitping()
+            increaseamountused(9016, 1)
+        end
+    end
+
+    if DropTrash then
+        for _, Item in ipairs(Trash) do
+            if itemcount(Item) > 0 then
+                moveitems(Item, "ground") waitping()
+            end
+        end
+    end
+
+    for Item, Count in pairs(Amount) do
+        local Current = itemcount(Item)
+
+        if Current > Count then
+            Amount[Item] = Current
+
+            increaseamountlooted(Item, Current - Count)
+        end
+    end
+end
+
+-- @name    antifurnituretrap
+-- @desc                Breaks all the destructible items that block the path of your character.
+-- @param   {various}     weapon  The weapon name or ID to use.
+-- @param   {number}   time    The maximum time to wait before start breaking items.
+-- @returns {null}
+
+function antifurnituretrap(weapon, time) -- Working
+    local Weapon = weapon or 'machete'
+    local MaxWait = math.max(time or 0, 0)
+
+    if clientitemhotkey(Weapon, "crosshair") == 'not found' and itemcount(Weapon) == 0 then
+        return nil
+    end
+
+    __CACHE.ANTI_FURNITURE._data = {}
+
+    for x = SCREEN_LEFT, SCREEN_RIGHT do
+        for y = SCREEN_TOP, SCREEN_BOTTOM do
+            local pos, house = {x = x + $posx, y = y + $posy, z = $posz}, false
+            local info = iteminfo(topitem(pos.x, pos.y, pos.z).id)
+
+            if info.isunpass and not info.isunmove and tilereachable(pos.x, pos.y, pos.z, false) then
+                for _, item in ipairs(__CACHE.ANTI_FURNITURE._houseitems) do
+                    if item.x == pos.x and item.y == pos.y and item.z == pos.z then
+                        house = true
+                        break
+                    end
+                end
+
+                if not house then
+                    table.insert(__CACHE.ANTI_FURNITURE._data, {x = pos.x, y = pos.y, z = pos.z, id = info.id})
+                end
+            end
+        end
+    end
+
+    table.sort(__CACHE.ANTI_FURNITURE._data, function(a, b)
+        if math.max(math.abs($posx - a.x), math.abs($posy - a.y)) == math.max(math.abs($posx - b.x), math.abs($posy - b.y)) then
+            if math.abs($posx - a.x) == math.abs($posx - b.x) then
+                if math.abs($posy - a.y) == math.abs($posy - b.y) then
+                    return a.id < b.id
+                else
+                    return math.abs($posy - a.y) < math.abs($posy - b.y)
+                end
+            else
+                return math.abs($posx - a.x) < math.abs($posx - b.x)
+            end
+        else
+            return math.max(math.abs($posx - a.x), math.abs($posy - a.y)) < math.max(math.abs($posx - b.x), math.abs($posy - b.y))
+        end
+    end)
+
+    if $standtime >= MaxWait * 1000 then
+        for i, item in pairs(__CACHE.ANTI_FURNITURE._data) do
+            local x, y, z, id, house = item.x, item.y, item.z, item.id, false
+
+            reachlocation(x, y, z) waitping()
+
+            while id == topitem(x, y, z).id and tilereachable(x, y, z, false) do
+                useitemon(Weapon, id, ground(x, y, z)) waitping(1.9, 2.1)
+
+                foreach newmessage m do
+                    if m.content:match("You are not invited") then
+                        house = table.remove(__CACHE.ANTI_FURNITURE._data, i)
+                        break
+                    end
+                end
+
+                if house then
+                    return table.insert(__CACHE.ANTI_FURNITURE._houseitems, house)
+                end
+            end
+        end
+    end
+end
+
+-- @name    getdistancebetween
+-- @desc                Returns the distance between positions given or -1 if it's not located on the same floor.
+-- @param   {various}     x   The x-axis position or the table with starting coordinates.
+-- @param   {various}     y   The y-axis position or the table with destiny coordinates.
+-- @param   {number}   z   The z-axis position.
+-- @param   {number}   a   The x-axis destiny position.
+-- @param   {number}   b   The y-axis destiny position.
+-- @param   {number}   c   The z-axis destiny position.
+-- @returns {number}
+
+function getdistancebetween(x, y, z, a, b, c) -- Working
+    if type(x) == 'table' and type(y) == 'table' and not (z and a and b and c) then
+        if x.x and y.x then
+            x,y,z,a,b,c = x.x, x.y, x.z, y.x, y.y, y.z
+        elseif #x == 3 and #y == 3 then
+            x,y,z,a,b,c = x[1], x[2], x[3], y[1], y[2], y[3]
+        else
+            return -1
+        end
+    end
+
+    return z == c and math.max(math.abs(x - a), math.abs(y - b)) or -1
+end
+
+-- @name    obfuscate
+-- @desc                Generates a obfuscated code that contains the function given.
+-- @param   {function}  func    The function to be obfuscated.
+-- @returns {string}
+-- @todo uncomment function when pcall and string.dump are added;
+
+--function obfuscate(f)
+--  local buff, script = "", string.dump(f())
+--
+--  for i = 1, script:len() do
+--      buff = buff .. '\\' .. string.byte(script, i)
+--  end
+--
+--  return buff
+--end
+
+-- @name    isabletocast
+-- @desc                Returns true if you are able to cast spell given.
+-- @param   {various}   spell   The spell object, name or words.
+-- @returns {boolean}
+
+function isabletocast(spell) -- Working
+    spell = type(spell) == 'table' and spell or spellinfo(spell)
+    return $level >= spell.level and $mp >= spell.mp and $soul >= spell.soul and cooldown(spell.words) == 0
+end
+
+-- @name    cancast
+-- @desc                Returns true if you are able to cast spell given and if the duration period for that spell has been depleted, optionally you can check if it's able to cast on to a creature.
+-- @param   {various}   spell       The spell object, name or words.
+-- @param   {various}   creature    The creature object, name or ID.
+-- @returns {boolean}
+
+function cancast(spell, creature) -- Working
+    spell = type(spell) == 'table' and spell or spellinfo(spell)
+    local CooldownControl, strike = __CACHE.CAN_CAST[spell.name:lower()] or 0, false
+
+    if creature then
+        creature = type(creature) == 'userdata' and creature or findcreature(creature)
+
+        if spell.castarea ~= 'None' and spell.castarea ~= '' then
+            strike = spell.words
+        end
+    end
+
+    return (not strike or isonspellarea(creature, strike, $self.dir)) and $timems >= CooldownControl and $level >= spell.level and $mp >= spell.mp and $soul >= spell.soul and cooldown(spell.words) == 0
+end
+
+-- @name    unequipitem
+-- @desc                Unequip an item located at the equipment slot given.
+-- @param   {string}    slot    The equipment slot name.
+-- @param   {string}    bp      The backpack to move item on. (optional)
+-- @param   {number}   amount  The amount of items to move on. (optional)
+-- @returns {null}
+
+function unequipitem(slot, bp, amount) -- Working
+    slot = slotNames[slot:lower()] or slot:lower()
+    local item = loadstring(sprintf("return $%s", slot))()
+
+    if item and item.id > 0 then
+        if type(bp) == 'number' then
+            amount = bp
+            bp = '0-15'
+        elseif not amount then
+            amount = item.count
+        end
+
+        return moveitems(item.id, bp, slot, amount)
+    end
+end
+
+-- @name    isinsidearea
+-- @desc                Returns true if you are located inside an area with the range coordinates given.
+-- @param   {table}     areaÃ‚Â¹, areaÃ‚Â², ..., area*    The area(s) range(s) in the format: {minimum x, maximum x, minimum y, maximum y, z}.
+-- @returns {boolean}
+
+function isinsidearea(...) -- Working
+    local SpecialAreas = {...}
+
+    if #SpecialAreas == 1 and type(SpecialAreas[1][1]) == 'table' then
+        SpecialAreas = SpecialAreas[1]
+    end
+
+    for i, area in ipairs(SpecialAreas) do
+        if #area == 5 then
+            local a,b,c,d,e = unpack(area)
+
+            if $posz == e and $posx <= b and $posx >= a and $posy <= d and $posy >= c then
+                return true
+            end
+        end
+    end
+
+    return false
+end
+
+-- @name    pvpworld
+-- @desc                Returns true if you are in a player versus player world, false otherwise.
+-- @returns {boolean}
+
+function pvpworld() -- Working
+    return table.find({"Astera", "Calmera", "Candia", "Celesta", "Fidera", "Guardia", "Harmonia", "Honera", "Luminera", "Magera", "Menera", "Nerana", "Olympa", "Pacera", "Refugia", "Secura", "Unitera"}, $worldname) == nil
+end
+
+-- @name    checklocation
+-- @desc                Checks if you are inside the waypoint location within the range given, if not goes to the label of section given, if section and label are not given, returns false or true if you are inside the location.
+-- @param   {number}   dist    The area range distance.
+-- @param   {various}     label   The label name or ID to go. (optional)
+-- @param   {string}    section The label section name. (optional)
+-- @returns {boolean}
+
+function checklocation(dist, label, section) -- Working
+    dist = type(dist) == 'number' and dist or 1
+
+    if not ($posx <= $wptx + dist and $posx >= $wptx-dist and $posy <= $wpty + dist and $posy >= $wpty - dist and $posz == $wptz) then
+        if not (label and section) then
+            return false
+        else
+            gotolabel(label, section)
+        end
+    end
+
+    return true
 end
 
 -- FIXES AND GENERAL EXTENSIONS
@@ -754,11 +879,11 @@ unequip = unequip or unequipitem
 --enables advanced cooldown control
 _CAST = _CAST or cast
 function cast(...)
-	args = {...}
-	local info = type(args[1]) == 'table' and args[1] or spellinfo(args[1])
-	__CACHE.CAN_CAST[info.name:lower()] = $timems + info.duration
+    args = {...}
+    local info = type(args[1]) == 'table' and args[1] or spellinfo(args[1])
+    __CACHE.CAN_CAST[info.name:lower()] = $timems + info.duration
 
-	return _CAST(...)
+    return _CAST(...)
 end
 
 printf("Leonardo's library loaded, version: %s", LIBS.LEONARDO)
