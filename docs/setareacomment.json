@@ -1,0 +1,19 @@
+{
+        "name": "setareacomment",
+        "invocations": [
+                {
+                        "rettype": null,
+                        "args": [
+                                {
+                                        "type": "string",
+                                        "name": "name"
+                                },
+                                {
+                                  "type": "string",
+                                  "name": "comment"
+                                }
+                        ],
+                        "description": "Sets the commentary for a special area."
+                }
+        ]
+}
