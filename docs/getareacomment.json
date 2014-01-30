@@ -1,0 +1,15 @@
+{
+        "name": "getareacomment",
+        "invocations": [
+                {
+                        "rettype": "string",
+                        "args": [
+                                {
+                                        "type": "string",
+                                        "name": "name"
+                                }
+                        ],
+                        "description": "Gets the commentary of a special area."
+                }
+        ]
+}
