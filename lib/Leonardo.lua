@@ -12,7 +12,6 @@
             -- printf;
             -- sprintf;
 			-- loadstringf;
-			-- table.tostring;
 
         --> Main functions:
             --> formatnumber;
@@ -29,8 +28,6 @@
 			--> setareaextrapolicy;
 			--> getareatype;
 			--> setareatype;
-			--> getareacomment;
-			--> setareacomment;
             --> isbinded;
             --> maroundfilter;
             --> maroundfilterignore;
@@ -66,7 +63,7 @@ AREA_SQUARE_DOUBLE_BORDER = 'Square (Double Border)'
 local SA_POLICY = {POLICY_CAVEBOT, POLICY_TARGETING, POLICY_ALL}
 local SA_TYPE = {AREA_SQUARE_FILLED, AREA_SQUARE_BORDER, AREA_SQUARE_DOUBLE_BORDER}
 
-local EQUIPMENT_SLOTS = {["amulet"] = "neck", ["weapon"] = "rhand", ["shield"] = "lhand", ["ring"] = "finger", ["armor"] = "chest", ["boots"] = "feet", ["ammo"] = "belt", ["helmet"] = "head"}
+local slotNames = {["amulet"] = "neck", ["weapon"] = "rhand", ["shield"] = "lhand", ["ring"] = "finger", ["armor"] = "chest", ["boots"] = "feet", ["ammo"] = "belt", ["helmet"] = "head"}
 
 -- LOCAL FUNCTIONS
 
@@ -139,8 +136,13 @@ function loadstringf(str, ...)
 	return loadstring(sprintf(str, ...))
 end
 
-function table.tostring(self, sep, name)
-	sep = sep or ''
+function table.tostring(self, name, sep)
+	if name and not sep then
+		sep = name
+		name = nil
+	elseif not (name or sep) then
+		sep = ' '
+	end
 
 	local str = ''
 
@@ -172,11 +174,9 @@ end
 
 function tosec(str) -- Working, by sirmate
     local sum, time, units, index = 0, str:token(nil, ":"), {86400, 3600, 60, 1}, 1
-
     for i = #units - #time + 1, #units do
         sum, index = sum + ((tonumber(time[index]) or 0) * units[i]), index + 1
     end
-
     return math.max(sum, 0)
 end
 
@@ -184,14 +184,17 @@ end
 -- @desc               Formats a number to show its units.
 -- @param   {number}   num     The number to be formatted
 -- @param   {string}   sep     The symbol to separate numbers, default is ",". (optional)
--- @param	{string}   pre     The preffix to append at the start of the number. (optional)
--- @param	{string}   suf     The suffix to append at the end of the number. (optional)
 -- @returns {string}
 
-function formatnumber(n, s, pre, suf)
-	local left,num,right = string.match(n,'^([^%d]*%d)(%d*)(.-)$')
+function formatnumber(n, s) -- Working, by sirmate
+    local result, sign, before, after, s = '', string.match(tostring(n), '^([%+%-]?)(%d*)(%.?.*)$'), s or ','
 
-	return string.format("%s%s%s", pre or '', left .. (num:reverse():gsub('(%d%d%d)','%1' .. (s or ',')):reverse()) .. right, suf or '')
+    while #before > 3 do
+        result = s .. string.sub(before, -3, -1) .. result
+        before = string.sub(before, 1, -4)
+    end
+
+    return sign .. before .. result .. after
 end
 
 -- @name    formattime
@@ -396,7 +399,7 @@ end
 -- @name    setareatype
 -- @desc                Sets the type of a special area.
 -- @param   {string}    name     The special area name.
--- @param   {various}   type     The area type as 'filled', 'border', 'double', 1 for filled, 2 for border or 3 for double border.
+-- @param   {various}   type     The area type as 'filled' or 'border', 1 for filled or 2 for border.
 -- @returns {null}
 
 function setareatype(name, areatype)
@@ -417,7 +420,7 @@ function setareatype(name, areatype)
 	elseif t == 'number' and areatype >= 1 or areatype <= 3 then
 		areatype = SA_TYPE[areatype]
 	else
-		return printerrorf("bad argument #2 to 'setareatype' (string or number (1-3) expected, got %s%s)", t, t == 'number' and not table.find({1,2,3}, areatype) and " different than the value expected" or '')
+		return printerrorf("bad argument #2 to 'setareatype' (string or number (1-3) expected, got %s%s)", t, not table.find({1,2,3}, areatype) and " different than the value expected" or '')
 	end
 
 	return setareasetting(name, 'Type', areatype)
@@ -459,7 +462,6 @@ function isbinded(...) -- working
             temp[i] = {key = arg[i], type = #info.words > 0 and info.itemid == 0, force = "all"}
         end
         i = i + 1
-
     end
 
     for _, entry in ipairs(temp) do
@@ -621,25 +623,25 @@ end
 -- @returns {null}
 
 function unrust(ignore, drop, value) -- Working
-    ignore = ignore or true
-    drop = drop or true
-    value = math.max(value or 0, 0)
+    local IgnoreCommon = ignore or true
+    local DropTrash = drop or true
+    local MinValue = math.max(value or 0, 0)
 
     if itemcount(9016) == 0 and clientitemhotkey(9016, "crosshair") == 'not found' then
-        return
+        return nil
     end
 
     local Amount, Trash = {}, {}
 
     for _, Item in ipairs({3357, 3358, 3359, 3360, 3362, 3364, 3370, 3371, 3372, 3377, 3381, 3382, 3557, 3558, 8063}) do
-        if itemvalue(Item) >= value then
+        if itemvalue(Item) > MinValue then
             Amount[Item] = itemcount(Item)
         else
             table.insert(Trash, Item)
         end
     end
 
-    local RustyItems = ignore and {8895, 8896, 8898, 8899} or {8895, 8896, 8897, 8898, 8899}
+    local RustyItems = IgnoreCommon and {8895, 8896, 8898, 8899} or {8895, 8896, 8897, 8898, 8899}
 
     for _, Item in ipairs(RustyItems) do
         if itemcount(Item) > 0 then
@@ -648,7 +650,7 @@ function unrust(ignore, drop, value) -- Working
         end
     end
 
-    if drop then
+    if DropTrash then
         for _, Item in ipairs(Trash) do
             if itemcount(Item) > 0 then
                 moveitems(Item, "ground") waitping()
@@ -808,7 +810,7 @@ end
 
 function cancast(spell, cre) -- Working
     spell = type(spell) == 'table' and spell or spellinfo(spell)
-    local cool, strike = LIB_CACHE.cancast[info.name:lower()] or 0, false
+    local cool, strike = LIB_CACHE.cancast[spell.name:lower()] or 0, false
 
     if cre then
         cre = type(cre) == 'userdata' and cre or findcreature(cre)
@@ -829,7 +831,7 @@ end
 -- @returns {null}
 
 function unequipitem(slot, bp, amount) -- Working
-    slot = EQUIPMENT_SLOTS[slot:lower()] or tostring(slot):lower()
+    slot = slotNames[slot:lower()] or slot:lower()
     local item = loadstringf("return $%s", slot)()
 
     if item and item.id > 0 then
@@ -879,7 +881,7 @@ end
 
 -- @name    checklocation
 -- @desc                Checks if you are inside the waypoint location within the range given, if not goes to the label of section given, if section and label are not given, returns false or true if you are inside the location.
--- @param   {various}   dist    The area range distance or the statement to check like: checklocation(islocation(7) and $posz == 7).
+-- @param   {various}   dist    The area range distance or the statement to check like: checklocation(islocation(7)).
 -- @param   {various}   label   The label name or ID to go. (optional)
 -- @param   {string}    section The label section name. (optional)
 -- @returns {boolean}
@@ -909,7 +911,7 @@ end
 
 -- extend function
 unequip = unequip or unequipitem
--- enables advanced cooldown control
+--enables advanced cooldown control
 
 function cast(...)
     local args = {...}
