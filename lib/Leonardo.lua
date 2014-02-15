@@ -1,8 +1,8 @@
 --[[
     Leonardo's Library
     Created: 15/01/2014
-    Updated: 29/01/2014
-    Version: 1.3.0
+    Updated: 15/02/2014
+    Version: 1.4.0
 
     --> Summary:
         --> Globals and Local variables;
@@ -11,7 +11,7 @@
         --> Extension Class;
             -- printf;
             -- sprintf;
-			-- loadstringf;
+	    -- loadstringf;
 
         --> Main functions:
             --> formatnumber;
@@ -24,10 +24,10 @@
             --> setareapolicy;
             --> getareaavoidance;
             --> setareaavoidance;
-			--> getareaextrapolicy;
-			--> setareaextrapolicy;
-			--> getareatype;
-			--> setareatype;
+	    --> getareaextrapolicy;
+	    --> setareaextrapolicy;
+	    --> getareatype;
+	    --> setareatype;
             --> isbinded;
             --> maroundfilter;
             --> maroundfilterignore;
@@ -38,6 +38,9 @@
             --> isabletocast;
             --> cancast;
             --> unequipitem;
+	    --> isontemple;
+	    --> withdrawitems;
+	    --> screentiles;
 
         --> Fixes and Function Extensions
             -- unequip;
@@ -49,7 +52,7 @@
 -- GLOBALS AND LOCAL VARIABLES
 
 LIBS = LIBS or {}
-LIBS.LEONARDO = "1.3.0"
+LIBS.LEONARDO = "1.4.0"
 
 POLICY_NONE = 'None'
 POLICY_CAVEBOT = 'Cavebot'
@@ -63,7 +66,46 @@ AREA_SQUARE_DOUBLE_BORDER = 'Square (Double Border)'
 local SA_POLICY = {POLICY_CAVEBOT, POLICY_TARGETING, POLICY_ALL}
 local SA_TYPE = {AREA_SQUARE_FILLED, AREA_SQUARE_BORDER, AREA_SQUARE_DOUBLE_BORDER}
 
-local slotNames = {["amulet"] = "neck", ["weapon"] = "rhand", ["shield"] = "lhand", ["ring"] = "finger", ["armor"] = "chest", ["boots"] = "feet", ["ammo"] = "belt", ["helmet"] = "head"}
+local slotNames = {
+	["amulet"] = function() return {name = 'neck', obj = $neck} end,
+	["neck"] = function() return {name = 'neck', obj = $neck} end,
+	["weapon"] = function() return {name = 'rhand', obj = $rhand} end,
+	["rhand"] = function() return {name = 'rhand', obj = $rhand} end,
+	["shield"] = function() return {name = 'lhand', obj = $lhand} end,
+	["lhand"] = function() return {name = 'lhand', obj = $lhand} end,
+	["ring"] = function() return {name = 'finger', obj = $finger} end,
+	["finger"] = function() return {name = 'finger', obj = $finger} end,
+	["armor"] = function() return {name = 'chest', obj = $chest} end,
+	["chest"] = function() return {name = 'chest', obj = $chest} end,
+	["boots"] = function() return {name = 'feet', obj = $feet} end,
+	["feet"] = function() return {name = 'feet', obj = $feet} end,
+	["boots"] = function() return {name = 'belt', obj = $belt} end,
+	["belt"] = function() return {name = 'belt', obj = $belt} end,
+	["helmet"] = function() return {name = 'head', obj = $head} end,
+	["head"] = function() return {name = 'head', obj = $head} end,
+}
+
+local cityTemples = {
+	-- thanks @Donatello for finding the positions;
+	{32953, 32966, 32072, 32081, 7}, --venore
+	{32358, 32380, 32231, 32248, 7}, --thais
+	{32357, 32363, 31776, 31787, 7}, --carlin
+	{32718, 32739, 31628, 31640, 7}, --abdendriel
+	{33509, 33517, 32360, 32366, 7}, -- roshaamul
+	{33208, 33225, 31804, 31819, 8}, -- edron
+	{33018, 33033, 31511, 31531, 11}, -- farmine
+	{33018, 33033, 31511, 31531, 13}, -- farmine
+	{33018, 33033, 31511, 31531, 15}, -- farmine
+	{33210, 33218, 32450, 32457, 1}, -- darashia
+	{32642, 32662, 31920, 31929, 11}, -- kazordoon
+	{32093, 32101, 32216, 32222, 7}, -- rookgaard
+	{33442, 33454, 31312, 31326, 9}, -- gray island
+	{32208, 32217, 31128, 31138, 7}, -- svargrond
+	{33188, 33201, 32844, 32857, 8}, -- ankrahmun
+	{32590, 32599, 32740, 32749, 6}, -- port hope
+	{32313, 32321, 32818, 32830, 7}, -- liberty bay
+	{32785, 32789, 31274, 31279, 7}, -- yalahar
+}
 
 -- LOCAL FUNCTIONS
 
@@ -71,6 +113,8 @@ LIB_CACHE = LIB_CACHE or {
 	antifurniture = {},
 	specialarea = {},
 	cancast = {},
+	isontemple = false,
+	screentiles = math.random(10^2, 10^4)
 }
 
 local __FUNCTIONS = __FUNCTIONS or {
@@ -680,8 +724,8 @@ function antifurnituretrap(weapon, t) -- Working
 	t = t or -1
 
 	if clientitemhotkey(weapon, 'crosshair') == 'not found' and itemcount(weapon) == 0 then
-		printerrorf('weapon "%s" was not found on the binded hotkeys and is not visible on the opened backpacks, please change settings.', itemname(weapon))
-		waitping(100000)
+		-- printerrorf('weapon "%s" was not found on the binded hotkeys and is not visible on the opened backpacks, please change settings.', itemname(weapon))
+		return
 	end
 
 	if $standtime < t * 60 then
@@ -831,19 +875,22 @@ end
 -- @returns {null}
 
 function unequipitem(slot, bp, amount) -- Working
-    slot = slotNames[slot:lower()] or slot:lower()
-    local item = loadstringf("return $%s", slot)()
+    slot = slotNames[slot:lower()]
 
-    if item and item.id > 0 then
-        if type(bp) == 'number' then
-            amount = bp
-            bp = '0-15'
-        elseif not amount then
-            amount = item.count
-        end
+	if slot then
+		item = slot()
 
-        return moveitems(item.id, bp, slot, amount)
-    end
+		if item.obj.id > 0 then
+			if type(bp) == 'number' then
+				amount = bp
+				bp = '0-15'
+			elseif not amount then
+				amount = item.obj.count
+			end
+
+			return moveitems(item.obj.id, bp, item.name, amount or item.obj.count)
+		end
+	end
 end
 
 -- @name    isinsidearea
@@ -905,6 +952,153 @@ function checklocation(dist, label, section) -- Working
 	end
 
     return true
+end
+
+-- @name    isontemple
+-- @desc                Returns true if you are inside a temple, false otherwise.
+-- @returns {boolean}
+
+function isontemple()
+	LIB_CACHE.isontemple = isinsidearea(cityTemples)
+
+	if $connected then
+		return $pzone and LIB_CACHE.isontemple
+	else
+		return LIB_CACHE.isontemple
+	end
+end
+
+-- @name    withdrawitems
+-- @desc                Withdraws items on your depot or inbox to the given containers.
+-- @param   {string}    cont    The container where the items are located and will be moved.
+-- @param   {string}    move    The container where the items will be moved. (optional)
+-- @param   {array}     item¹, item², ..., item*    The array of items that must be moved could be name/ID or table {backpack, item[, amount]} or {backpack = 'backpack name', name = 'item name', amount = 100}.
+-- @returns {boolean}
+
+function withdrawitems(where, to, ...)
+	local items = {...}
+	local tempType = type(where)
+
+	if tempType == 'string' then
+		where = where:lower()
+
+		if where:find('depot') or where:find('chest') then
+			where = 'Depot Chest'
+		elseif where:find('inbox') then
+			where = 'Your Inbox'
+		else
+			where = itemname(where)
+		end
+	elseif tempType == 'userdata' and where.objtype == 'container' then
+		where = where.name
+	else
+		return false
+	end
+
+	tempType = type(to)
+
+	if tempType == 'table' then
+		table.insert(items, to)
+		to = '0-15'
+	elseif tempType == 'string' then
+		if getcontainer(to).name == '' and tonumber(to:sub(1,1)) == nil then
+			return false
+		end
+	elseif tempType == 'userdata' and to.objtype == 'container' then
+		to = to.name
+	end
+
+	for _, item in ipairs(items) do
+		tempType = type(item)
+
+		if tempType == 'table' then
+			local bp, id, amount = item.backpack or item[1], item.name or item[2], item.amount or item[3]
+
+			if id and bp then
+				amount = amount or 100
+				moveitemsupto(id, amount + itemcount(id, bp), bp, from) waitping()
+			end
+		elseif ('string|number'):find(tempType) then
+			moveitems(item, to, where) waitping()
+		end
+	end
+
+	return true
+end
+
+function screentiles(sortf, area, func)
+	local tempType, xs, ys, xe, ye, Positions, i = type(sortf), -7, -5, 7, 5, {}, 0
+
+	if tempType == 'table' and #sortf == 4 then
+		xs, xe, ys, ye = sortf[1], sortf[2], sortf[3], sortf[4]
+		sortf = false
+	elseif tempType ~= 'function' then
+		sortf = false
+	end
+
+	tempType = type(area)
+
+	if tempType == 'function' then
+		func = area
+	elseif tempType == 'table' and #area == 4 then
+		xs, xe, ys, ye = area[1], area[2], area[3], area[4]
+	elseif tempType == 'number' then
+		xs, xe, ys, ye = -area, area, -area, area
+	end
+
+	for x = xs, xe, xs < xe and 1 or -1 do
+		for y = ys, ye, ys < ye and 1 or -1 do
+			local _x, _y = $posx + x, $posy + y
+
+			if tilehasinfo(_x, _y, $posz) then
+				table.insert(Positions, {_x, _y, $posz})
+			end
+		end
+	end
+
+	LIB_CACHE.screentiles = math.random(10^2, 10^4)
+
+	if sortf then
+		table.sort(Positions, sortf)
+	end
+
+	return function()
+		i = i + 1
+
+		if Positions[i] then
+			return func and func(Positions[i][1], Positions[i][2], Positions[i][3]) or Positions[i][1], Positions[i][2], Positions[i][3]
+		end
+
+		return
+	end
+end
+
+function ORDER_RADIAL(a, b)
+	return getdistancebetween(a, {$posx, $posy, $posz}) < getdistancebetween(b, {$posx, $posy, $posz})
+end
+
+function ORDER_RADIAL_REVERSE(a, b)
+	return ORDER_RADIAL(b, a)
+end
+
+function ORDER_EUCLIDEAN(a, b)
+	return math.sqrt(math.abs(a[1] - $posx)^2 + math.abs(a[2] - $posy)^2) > math.sqrt(math.abs(b[1] - $posx)^2 + math.abs(b[2] - $posy)^2)
+end
+
+function ORDER_EUCLIDEAN_REVERSE(a, b)
+	return ORDER_EUCLIDEAN(b, a)
+end
+
+function ORDER_REALDIST(a, b)
+	return math.abs((a[1] - $posx) + (a[2] - $posy)) > math.abs((b[1] - $posx) + (b[2] - $posy))
+end
+
+function ORDER_REALDIST_REVERSE(a, b)
+	return ORDER_REALDIST(b, a)
+end
+
+function ORDER_RANDOM(a, b)
+	return (a[1] * a[2] * a[3]) % LIB_CACHE.screentiles < (b[1] * b[2] * b[3]) % LIB_CACHE.screentiles
 end
 
 -- FIXES AND GENERAL EXTENSIONS
