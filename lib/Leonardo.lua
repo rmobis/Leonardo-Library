@@ -1,8 +1,8 @@
 --[[
 	Leonardo's Library
 	Created: 15/01/2014
-	Updated: 23/02/2014
-	Version: 1.4.1
+	Updated: 18/03/2014
+	Version: 1.4.2
 
 	--> Summary:
 		--> Globals and Local variables;
@@ -11,7 +11,7 @@
 		--> Extension Class;
 			-- printf;
 			-- sprintf;
-		-- loadstringf;
+			-- loadstringf;
 
 		--> Main functions:
 			--> formatnumber;
@@ -24,10 +24,10 @@
 			--> setareapolicy;
 			--> getareaavoidance;
 			--> setareaavoidance;
-		--> getareaextrapolicy;
-		--> setareaextrapolicy;
-		--> getareatype;
-		--> setareatype;
+			--> getareaextrapolicy;
+			--> setareaextrapolicy;
+			--> getareatype;
+			--> setareatype;
 			--> isbinded;
 			--> maroundfilter;
 			--> maroundfilterignore;
@@ -38,9 +38,9 @@
 			--> isabletocast;
 			--> cancast;
 			--> unequipitem;
-		--> isontemple;
-		--> withdrawitems;
-		--> screentiles;
+			--> isontemple;
+			--> withdrawitems;
+			--> screentiles;
 
 		--> Fixes and Function Extensions
 			-- unequip;
@@ -52,7 +52,7 @@
 -- GLOBALS AND LOCAL VARIABLES
 
 LIBS = LIBS or {}
-LIBS.LEONARDO = "1.4.1"
+LIBS.LEONARDO = "1.4.2"
 
 POLICY_NONE = 'None'
 POLICY_CAVEBOT = 'Cavebot'
@@ -721,14 +721,13 @@ end
 
 function antifurnituretrap(weapon, t) -- Working
 	weapon = weapon or 'Machete'
-	t = t or -1
+	t = t or 0
 
 	if clientitemhotkey(weapon, 'crosshair') == 'not found' and itemcount(weapon) == 0 then
-		-- printerrorf('weapon "%s" was not found on the binded hotkeys and is not visible on the opened backpacks, please change settings.', itemname(weapon))
-		return
+		return --printerrorf('weapon "%s" was not found on the binded hotkeys and is not visible on the opened backpacks, please change settings.', itemname(weapon))
 	end
 
-	if $standtime < t * 60 then
+	if $standtime >= t * 60 then
 		return
 	end
 
@@ -788,23 +787,28 @@ function antifurnituretrap(weapon, t) -- Working
 					end
 				end
 			else
-				browsefield(x, y, z) waitping(1.5, 2)
+				browsefield(x, y, z) waitcontainer("browse field", true)
 				local cont = getcontainer('Browse Field')
-				for i = 1, cont.itemcount do
-					local info = iteminfo(cont.item[i].id)
 
-					if info.isunpass and not info.isunmove then
-						while itemcount(cont.item[i].id, 'Browse Field') > 0 and tilereachable(x, y, z, false) do
-							useitemon(weapon, info.id, "Browse Field") waitping()
+				for j = 1, cont.lastpage do
+					for i = 1, cont.itemcount do
+						local info = iteminfo(cont.item[i].id)
 
-							foreach newmessage m do
-								if m.content:match("You are not invited") then
-									LIB_CACHE.antifurniture[ground(x, y, z)] = true
-									return
+						if info.isunpass and not info.isunmove then
+							while itemcount(cont.item[i].id, 'Browse Field') > 0 and tilereachable(x, y, z, false) do
+								useitemon(weapon, info.id, "Browse Field") waitping()
+
+								foreach newmessage m do
+									if m.content:match("You are not invited") then
+										LIB_CACHE.antifurniture[ground(x, y, z)] = true
+										return
+									end
 								end
 							end
 						end
 					end
+
+					changepage('browse field', math.min(j + 1, cont.lastpage))
 				end
 			end
 			pausewalking(0)
@@ -976,7 +980,7 @@ end
 -- @desc				Withdraws items on your depot or inbox to the given containers.
 -- @param   {string}	cont	The container where the items are located and will be moved.
 -- @param   {string}	move	The container where the items will be moved. (optional)
--- @param   {array}	 itemÂ¹, itemÂ², ..., item*	The array of items that must be moved could be name/ID or table {backpack, item[, amount]} or {backpack = 'backpack name', name = 'item name', amount = 100}.
+-- @param   {array}	 item¹, item², ..., item*	The array of items that must be moved could be name/ID or table {backpack, item[, amount]} or {backpack = 'backpack name', name = 'item name', amount = 100}.
 -- @returns {boolean}
 
 function withdrawitems(where, to, ...)
