@@ -721,16 +721,20 @@ end
 
 function antifurnituretrap(weapon, stand) -- Working
 	weapon = weapon or 'Machete'
-	stand = (stand or 0) * 60
-
+	stand = (stand or 0) / 1000
+	
 	if clientitemhotkey(weapon, 'crosshair') == 'not found' and itemcount(weapon) == 0 then
 		return 1, "AntiFurniture[Issue1]: 'Weapon' given not found on hotkeys and not visible."
+	end
+	
+	if stand < 1 then
+		stand = stand * 1000
 	end
 
 	if $standtime <= stand then
 		return 2, "AntiFurniture[Issue2]: Current standtime less than the required time."
 	end
-
+	
 	local Furniture = {}
 
 	for x, y, z in screentiles(ORDER_RADIAL, 7) do
@@ -757,7 +761,7 @@ function antifurnituretrap(weapon, stand) -- Working
 			foreach newmessage m do
 				if m.content:match("You are not invited") then
 					LIB_CACHE.antifurniture[ground(x, y, z)] = true
-					return 3, "AntiFurniture[Issue3]: Cancelling routine due to an item inside a house."
+					return 4, "AntiFurniture[Issue4]: Cancelling routine due to an item inside a house. (top item)"
 				end
 			end
 
@@ -768,7 +772,7 @@ function antifurnituretrap(weapon, stand) -- Working
 					foreach newmessage m do
 						if m.content:match("You are not invited") then
 							LIB_CACHE.antifurniture[ground(x, y, z)] = true
-							return 3, "AntiFurniture[Issue3]: Cancelling routine due to an item inside a house."
+							return 4, "AntiFurniture[Issue4]: Cancelling routine due to an item inside a house. (top item)"
 						end
 					end
 				end
@@ -787,7 +791,7 @@ function antifurnituretrap(weapon, stand) -- Working
 								foreach newmessage m do
 									if m.content:match("You are not invited") then
 										LIB_CACHE.antifurniture[ground(x, y, z)] = true
-										return 3, "AntiFurniture[Issue3]: Cancelling routine due to an item inside a house."
+										return 3, "AntiFurniture[Issue3]: Cancelling routine due to an item inside a house. (browsing field)"
 									end
 								end
 							end
@@ -800,9 +804,11 @@ function antifurnituretrap(weapon, stand) -- Working
 
 			pausewalking(0)
 		end
+	else
+		return 5, "AntiFurniture[Issue5]: Character is standing still without furnitures to break."
 	end
 
-	return 0
+	return 0, "AntiFurniture[No Issue]"
 end
 
 -- @name	getdistancebetween
@@ -937,13 +943,13 @@ function checklocation(dist, label, section) -- Working
 		if not (label and section) then
 			return false
 		else
-			gotolabel(label, section)
+			return gotolabel(label, section)
 		end
 	elseif t == 'boolean' and not dist then
 		if not (label and section) then
 			return false
 		else
-			gotolabel(label, section)
+			return gotolabel(label, section)
 		end
 	end
 
@@ -1102,7 +1108,8 @@ end
 
 -- extend function
 unequip = unequip or unequipitem
---enables advanced cooldown control
+antifurniture = antifurniture or antifurnituretrap
+--enables advanced cooldown control for cancast
 
 function cast(...)
 	local args = {...}
