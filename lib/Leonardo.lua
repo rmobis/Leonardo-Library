@@ -1,8 +1,8 @@
 --[[
 	Leonardo's Library
 	Created: 15/01/2014
-	Updated: 18/03/2014
-	Version: 1.4.2
+	Updated: 28/04/2014
+	Version: 1.4.3
 
 	--> Summary:
 		--> Globals and Local variables;
@@ -52,7 +52,7 @@
 -- GLOBALS AND LOCAL VARIABLES
 
 LIBS = LIBS or {}
-LIBS.LEONARDO = "1.4.2"
+LIBS.LEONARDO = "1.4.3"
 
 POLICY_NONE = 'None'
 POLICY_CAVEBOT = 'Cavebot'
@@ -716,51 +716,35 @@ end
 -- @name	antifurnituretrap
 -- @desc				Breaks all the destructible items that block the path of your character.
 -- @param   {various}   weapon  The weapon name or ID to use.
--- @param   {number}	time	The maximum time to wait before start breaking items.
--- @returns {null}
+-- @param   {number}	stand	The maximum time to wait before start breaking items.
+-- @returns {integer}
 
-function antifurnituretrap(weapon, t) -- Working
+function antifurnituretrap(weapon, stand) -- Working
 	weapon = weapon or 'Machete'
-	t = t or 0
+	stand = (stand or 0) * 60
 
 	if clientitemhotkey(weapon, 'crosshair') == 'not found' and itemcount(weapon) == 0 then
-		return --printerrorf('weapon "%s" was not found on the binded hotkeys and is not visible on the opened backpacks, please change settings.', itemname(weapon))
+		return 1, "AntiFurniture[Issue1]: 'Weapon' given not found on hotkeys and not visible."
 	end
 
-	if $standtime >= t * 60 then
-		return
+	if $standtime <= stand then
+		return 2, "AntiFurniture[Issue2]: Current standtime less than the required time."
 	end
 
 	local Furniture = {}
 
-	for a = 1, 7 do
-		local j = -a
+	for x, y, z in screentiles(ORDER_RADIAL, 7) do
+		if tilereachable(x, y, z, false) and not LIB_CACHE.antifurniture[ground(x, y, z)] then
+			local tile = gettile(x, y, z)
 
-		while j <= a do
-			local i = -a
+			for k = tile.itemcount, 1, -1 do
+				local info = iteminfo(tile.item[k].id)
 
-			while i <= a do
-				local x, y, z = $posx + i, $posy + j, $posz
-				local tile = gettile(x, y, z)
-
-				if tilereachable(x, y, z, false) then
-					for k = tile.itemcount, 1, -1 do
-						local info = iteminfo(tile.item[k].id)
-
-						if info.isunpass and not info.isunmove and not LIB_CACHE.antifurniture[ground(x, y, z)] then
-							table.insert(Furniture, {x = x, y = y, z = z, id = info.id, top = k == tile.itemcount})
-							break
-						end
-					end
-				end
-
-				if math.abs(j) ~= a then
-					i = i + a * 2
-				else
-					i = i + 1
+				if info.isunpass and not info.isunmove then
+					table.insert(Furniture, {x = x, y = y, z = z, id = info.id, top = k == tile.itemcount})
+					break
 				end
 			end
-			j = j + 1
 		end
 	end
 
@@ -769,12 +753,14 @@ function antifurnituretrap(weapon, t) -- Working
 			local x, y, z, id, top = item.x, item.y, item.z, item.id, item.top
 
 			pausewalking(10000) reachlocation(x, y, z)
+
 			foreach newmessage m do
 				if m.content:match("You are not invited") then
 					LIB_CACHE.antifurniture[ground(x, y, z)] = true
-					return
+					return 3, "AntiFurniture[Issue3]: Cancelling routine due to an item inside a house."
 				end
 			end
+
 			if top then
 				while id == topitem(x, y, z).id and tilereachable(x, y, z, false) do
 					useitemon(weapon, id, ground(x, y, z)) waitping()
@@ -782,7 +768,7 @@ function antifurnituretrap(weapon, t) -- Working
 					foreach newmessage m do
 						if m.content:match("You are not invited") then
 							LIB_CACHE.antifurniture[ground(x, y, z)] = true
-							return
+							return 3, "AntiFurniture[Issue3]: Cancelling routine due to an item inside a house."
 						end
 					end
 				end
@@ -801,7 +787,7 @@ function antifurnituretrap(weapon, t) -- Working
 								foreach newmessage m do
 									if m.content:match("You are not invited") then
 										LIB_CACHE.antifurniture[ground(x, y, z)] = true
-										return
+										return 3, "AntiFurniture[Issue3]: Cancelling routine due to an item inside a house."
 									end
 								end
 							end
@@ -811,9 +797,12 @@ function antifurnituretrap(weapon, t) -- Working
 					changepage('browse field', math.min(j + 1, cont.lastpage))
 				end
 			end
+
 			pausewalking(0)
 		end
 	end
+
+	return 0
 end
 
 -- @name	getdistancebetween
