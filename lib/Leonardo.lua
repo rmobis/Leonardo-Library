@@ -1,19 +1,20 @@
 --[[
 	Leonardo's Library
 	Created: 15/01/2014
-	Updated: 28/04/2014
+	Updated: 01/05/2014
 	Version: 1.4.3
 
 	--> Summary:
-		--> Globals and Local variables;
-		--> Local functions;
+		--> Globals and Local variables
+		--> Local functions
 
-		--> Extension Class;
+		--> Extension Class
 			-- printf;
 			-- sprintf;
 			-- loadstringf;
+			-- printerrorf;
 
-		--> Main functions:
+		--> Main functions
 			--> formatnumber;
 			--> formattime;
 			--> getareaposition;
@@ -43,6 +44,7 @@
 			--> screentiles;
 
 		--> Fixes and Function Extensions
+			-- antifurniture;
 			-- unequip;
 			-- cast;
 		<--
@@ -67,30 +69,30 @@ local SA_POLICY = {POLICY_CAVEBOT, POLICY_TARGETING, POLICY_ALL}
 local SA_TYPE = {AREA_SQUARE_FILLED, AREA_SQUARE_BORDER, AREA_SQUARE_DOUBLE_BORDER}
 
 local slotNames = {
-	["amulet"] = function() return {name = 'neck', obj = $neck} end,
-	["neck"] = function() return {name = 'neck', obj = $neck} end,
-	["weapon"] = function() return {name = 'rhand', obj = $rhand} end,
-	["rhand"] = function() return {name = 'rhand', obj = $rhand} end,
-	["shield"] = function() return {name = 'lhand', obj = $lhand} end,
-	["lhand"] = function() return {name = 'lhand', obj = $lhand} end,
-	["ring"] = function() return {name = 'finger', obj = $finger} end,
-	["finger"] = function() return {name = 'finger', obj = $finger} end,
-	["armor"] = function() return {name = 'chest', obj = $chest} end,
-	["chest"] = function() return {name = 'chest', obj = $chest} end,
-	["boots"] = function() return {name = 'feet', obj = $feet} end,
-	["feet"] = function() return {name = 'feet', obj = $feet} end,
-	["boots"] = function() return {name = 'belt', obj = $belt} end,
-	["belt"] = function() return {name = 'belt', obj = $belt} end,
-	["helmet"] = function() return {name = 'head', obj = $head} end,
-	["head"] = function() return {name = 'head', obj = $head} end,
+	["amulet"]	= function() return {name = 'neck', obj = $neck}		end,
+	["neck"]	= function() return {name = 'neck', obj = $neck}		end,
+	["weapon"]	= function() return {name = 'rhand', obj = $rhand}		end,
+	["rhand"]	= function() return {name = 'rhand', obj = $rhand}		end,
+	["shield"]	= function() return {name = 'lhand', obj = $lhand}		end,
+	["lhand"]	= function() return {name = 'lhand', obj = $lhand}		end,
+	["ring"]	= function() return {name = 'finger', obj = $finger}	end,
+	["finger"]	= function() return {name = 'finger', obj = $finger}	end,
+	["armor"]	= function() return {name = 'chest', obj = $chest}		end,
+	["chest"]	= function() return {name = 'chest', obj = $chest}		end,
+	["boots"]	= function() return {name = 'feet', obj = $feet}		end,
+	["feet"]	= function() return {name = 'feet', obj = $feet}		end,
+	["boots"]	= function() return {name = 'belt', obj = $belt}		end,
+	["belt"]	= function() return {name = 'belt', obj = $belt}		end,
+	["helmet"]	= function() return {name = 'head', obj = $head}		end,
+	["head"]	= function() return {name = 'head', obj = $head}		end,
 }
 
 local cityTemples = {
-	-- thanks @Donatello for finding the positions;
-	{32953, 32966, 32072, 32081, 7}, --venore
-	{32358, 32380, 32231, 32248, 7}, --thais
-	{32357, 32363, 31776, 31787, 7}, --carlin
-	{32718, 32739, 31628, 31640, 7}, --abdendriel
+	-- thanks @Donatello for finding the positions:
+	{32953, 32966, 32072, 32081, 7}, -- venore
+	{32358, 32380, 32231, 32248, 7}, -- thais
+	{32357, 32363, 31776, 31787, 7}, -- carlin
+	{32718, 32739, 31628, 31640, 7}, -- abdendriel
 	{33509, 33517, 32360, 32366, 7}, -- roshaamul
 	{33208, 33225, 31804, 31819, 8}, -- edron
 	{33018, 33033, 31511, 31531, 11}, -- farmine
@@ -178,6 +180,10 @@ end
 
 function loadstringf(str, ...)
 	return loadstring(sprintf(str, ...))
+end
+
+function printerrorf(str, ...)
+	return printerror(sprintf(str, ...))
 end
 
 function table.tostring(self, name, sep)
@@ -721,91 +727,87 @@ end
 
 function antifurnituretrap(weapon, stand) -- Working
 	weapon = weapon or 'Machete'
-	stand = (stand or 0) / 1000
-	
+	stand = (stand or 0) * 1000
+
 	if clientitemhotkey(weapon, 'crosshair') == 'not found' and itemcount(weapon) == 0 then
 		return 1, "AntiFurniture[Issue1]: 'Weapon' given not found on hotkeys and not visible."
 	end
-	
-	if stand < 1 then
-		stand = stand * 1000
-	end
 
-	if $standtime <= stand then
-		return 2, "AntiFurniture[Issue2]: Current standtime less than the required time."
-	end
-	
-	local Furniture = {}
+	if $standtime > stand then
+		local Furniture = {}
 
-	for x, y, z in screentiles(ORDER_RADIAL, 7) do
-		if tilereachable(x, y, z, false) and not LIB_CACHE.antifurniture[ground(x, y, z)] then
-			local tile = gettile(x, y, z)
+		for x, y, z in screentiles(ORDER_RADIAL, 7) do
+			if tilereachable(x, y, z, false) and not LIB_CACHE.antifurniture[ground(x, y, z)] then
+				local tile = gettile(x, y, z)
 
-			for k = tile.itemcount, 1, -1 do
-				local info = iteminfo(tile.item[k].id)
+				for k = tile.itemcount, 1, -1 do
+					local info = iteminfo(tile.item[k].id)
 
-				if info.isunpass and not info.isunmove then
-					table.insert(Furniture, {x = x, y = y, z = z, id = info.id, top = k == tile.itemcount})
-					break
+					if info.isunpass and not info.isunmove then
+						table.insert(Furniture, {x = x, y = y, z = z, id = info.id, top = k == tile.itemcount})
+						break
+					end
 				end
 			end
 		end
-	end
 
-	if #Furniture > 0 then
-		for _, item in ipairs(Furniture) do
-			local x, y, z, id, top = item.x, item.y, item.z, item.id, item.top
+		if #Furniture > 0 then
+			for _, item in ipairs(Furniture) do
+				local x, y, z, id, top = item.x, item.y, item.z, item.id, item.top
 
-			pausewalking(10000) reachlocation(x, y, z)
+				pausewalking(10000) reachlocation(x, y, z)
 
-			foreach newmessage m do
-				if m.content:match("You are not invited") then
-					LIB_CACHE.antifurniture[ground(x, y, z)] = true
-					return 4, "AntiFurniture[Issue4]: Cancelling routine due to an item inside a house. (top item)"
-				end
-			end
-
-			if top then
-				while id == topitem(x, y, z).id and tilereachable(x, y, z, false) do
-					useitemon(weapon, id, ground(x, y, z)) waitping()
-
-					foreach newmessage m do
-						if m.content:match("You are not invited") then
-							LIB_CACHE.antifurniture[ground(x, y, z)] = true
-							return 4, "AntiFurniture[Issue4]: Cancelling routine due to an item inside a house. (top item)"
-						end
+				foreach newmessage m do
+					if m.content:match("You are not invited") then
+						LIB_CACHE.antifurniture[ground(x, y, z)] = true
+						return 4, "AntiFurniture[Issue4]: Cancelling routine due to an item inside a house. (top item)"
 					end
 				end
-			else
-				browsefield(x, y, z) waitcontainer("browse field", true)
-				local cont = getcontainer('Browse Field')
 
-				for j = 1, cont.lastpage do
-					for i = 1, cont.itemcount do
-						local info = iteminfo(cont.item[i].id)
+				if top then
+					while id == topitem(x, y, z).id and tilereachable(x, y, z, false) do
+						useitemon(weapon, id, ground(x, y, z)) waitping()
 
-						if info.isunpass and not info.isunmove then
-							while itemcount(cont.item[i].id, 'Browse Field') > 0 and tilereachable(x, y, z, false) do
-								useitemon(weapon, info.id, "Browse Field") waitping()
+						foreach newmessage m do
+							if m.content:match("You are not invited") then
+								LIB_CACHE.antifurniture[ground(x, y, z)] = true
+								return 4, "AntiFurniture[Issue4]: Cancelling routine due to an item inside a house. (top item)"
+							end
+						end
+					end
+				else
+					browsefield(x, y, z) waitcontainer("browse field", true)
+					local cont = getcontainer('Browse Field')
 
-								foreach newmessage m do
-									if m.content:match("You are not invited") then
-										LIB_CACHE.antifurniture[ground(x, y, z)] = true
-										return 3, "AntiFurniture[Issue3]: Cancelling routine due to an item inside a house. (browsing field)"
+					for j = 1, cont.lastpage do
+						for i = 1, cont.itemcount do
+							local info = iteminfo(cont.item[i].id)
+
+							if info.isunpass and not info.isunmove then
+								while itemcount(cont.item[i].id, 'Browse Field') > 0 and tilereachable(x, y, z, false) do
+									useitemon(weapon, info.id, "Browse Field") waitping()
+
+									foreach newmessage m do
+										if m.content:match("You are not invited") then
+											LIB_CACHE.antifurniture[ground(x, y, z)] = true
+											return 3, "AntiFurniture[Issue3]: Cancelling routine due to an item inside a house. (browsing field)"
+										end
 									end
 								end
 							end
 						end
+
+						changepage('browse field', math.min(j + 1, cont.lastpage))
 					end
-
-					changepage('browse field', math.min(j + 1, cont.lastpage))
 				end
-			end
 
-			pausewalking(0)
+				pausewalking(0)
+			end
+		else
+			return 5, "AntiFurniture[Issue5]: Character is standing still without furnitures to break."
 		end
 	else
-		return 5, "AntiFurniture[Issue5]: Character is standing still without furnitures to break."
+		return 2, "AntiFurniture[Issue2]: Current standtime less than the required time."
 	end
 
 	return 0, "AntiFurniture[No Issue]"
