@@ -1,8 +1,8 @@
 --[[
 	Leonardo's Library
 	Created: 15/01/2014
-	Updated: 01/05/2014
-	Version: 1.4.3
+	Updated: 10/06/2014
+	Version: 1.4.4
 
 	--> Summary:
 		--> Globals and Local variables
@@ -81,7 +81,7 @@ local slotNames = {
 	["chest"]	= function() return {name = 'chest', obj = $chest}		end,
 	["boots"]	= function() return {name = 'feet', obj = $feet}		end,
 	["feet"]	= function() return {name = 'feet', obj = $feet}		end,
-	["boots"]	= function() return {name = 'belt', obj = $belt}		end,
+	["ammo"]	= function() return {name = 'belt', obj = $belt}		end,
 	["belt"]	= function() return {name = 'belt', obj = $belt}		end,
 	["helmet"]	= function() return {name = 'head', obj = $head}		end,
 	["head"]	= function() return {name = 'head', obj = $head}		end,
