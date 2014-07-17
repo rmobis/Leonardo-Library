@@ -1,7 +1,7 @@
 --[[
 	Leonardo's Library
 	Created: 15/01/2014
-	Updated: 10/06/2014
+	Updated: 17/07/2014
 	Version: 1.4.4
 
 	--> Summary:
@@ -54,7 +54,7 @@
 -- GLOBALS AND LOCAL VARIABLES
 
 LIBS = LIBS or {}
-LIBS.LEONARDO = "1.4.3"
+LIBS.LEONARDO = "1.4.4"
 
 POLICY_NONE = 'None'
 POLICY_CAVEBOT = 'Cavebot'
@@ -69,22 +69,22 @@ local SA_POLICY = {POLICY_CAVEBOT, POLICY_TARGETING, POLICY_ALL}
 local SA_TYPE = {AREA_SQUARE_FILLED, AREA_SQUARE_BORDER, AREA_SQUARE_DOUBLE_BORDER}
 
 local slotNames = {
-	["amulet"]	= function() return {name = 'neck', obj = $neck}		end,
-	["neck"]	= function() return {name = 'neck', obj = $neck}		end,
-	["weapon"]	= function() return {name = 'rhand', obj = $rhand}		end,
-	["rhand"]	= function() return {name = 'rhand', obj = $rhand}		end,
-	["shield"]	= function() return {name = 'lhand', obj = $lhand}		end,
-	["lhand"]	= function() return {name = 'lhand', obj = $lhand}		end,
-	["ring"]	= function() return {name = 'finger', obj = $finger}	end,
-	["finger"]	= function() return {name = 'finger', obj = $finger}	end,
-	["armor"]	= function() return {name = 'chest', obj = $chest}		end,
-	["chest"]	= function() return {name = 'chest', obj = $chest}		end,
-	["boots"]	= function() return {name = 'feet', obj = $feet}		end,
-	["feet"]	= function() return {name = 'feet', obj = $feet}		end,
-	["ammo"]	= function() return {name = 'belt', obj = $belt}		end,
-	["belt"]	= function() return {name = 'belt', obj = $belt}		end,
-	["helmet"]	= function() return {name = 'head', obj = $head}		end,
-	["head"]	= function() return {name = 'head', obj = $head}		end,
+	["amulet"]	= function() return {name = 'neck',	obj = $neck}	end,
+	["neck"]	= function() return {name = 'neck',	obj = $neck}	end,
+	["weapon"]	= function() return {name = 'rhand',	obj = $rhand}	end,
+	["rhand"]	= function() return {name = 'rhand',	obj = $rhand}	end,
+	["shield"]	= function() return {name = 'lhand',	obj = $lhand}	end,
+	["lhand"]	= function() return {name = 'lhand',	obj = $lhand}	end,
+	["ring"]	= function() return {name = 'finger',	obj = $finger}	end,
+	["finger"]	= function() return {name = 'finger',	obj = $finger}	end,
+	["armor"]	= function() return {name = 'chest',	obj = $chest}	end,
+	["chest"]	= function() return {name = 'chest',	obj = $chest}	end,
+	["boots"]	= function() return {name = 'feet',	obj = $feet}	end,
+	["feet"]	= function() return {name = 'feet',	obj = $feet}	end,
+	["ammo"]	= function() return {name = 'belt',	obj = $belt}	end,
+	["belt"]	= function() return {name = 'belt',	obj = $belt}	end,
+	["helmet"]	= function() return {name = 'head',	obj = $head}	end,
+	["head"]	= function() return {name = 'head',	obj = $head}	end,
 }
 
 local cityTemples = {
@@ -203,7 +203,7 @@ function table.tostring(self, name, sep)
 
 		if t == 'string' then
 			str = str .. sprintf("%s,%s", (n == 'number' and sprintf('%q', v)) or sprintf('%s = %q', k, v), sep)
-		elseif t:match('number|boolean') then
+		elseif t == 'number' or t == 'boolean' then
 			str = str .. sprintf("%s,%s", (n == 'number' and tostring(v)) or sprintf('%s = %s', k, tostring(v)), sep)
 		elseif t == 'table' then
 			str = str .. sprintf("%s,%s", (n == 'number' and table.tostring(v)) or sprintf('%s = %s', k, table.tostring(v)), sep)
@@ -224,9 +224,11 @@ end
 
 function tosec(str) -- Working, by sirmate
 	local sum, time, units, index = 0, str:token(nil, ":"), {86400, 3600, 60, 1}, 1
+	
 	for i = #units - #time + 1, #units do
 		sum, index = sum + ((tonumber(time[index]) or 0) * units[i]), index + 1
 	end
+	
 	return math.max(sum, 0)
 end
 
@@ -511,6 +513,7 @@ function isbinded(...) -- working
 			info = spellinfo(arg[i])
 			temp[i] = {key = arg[i], type = #info.words > 0 and info.itemid == 0, force = "all"}
 		end
+		
 		i = i + 1
 	end
 
@@ -826,9 +829,9 @@ end
 function getdistancebetween(x, y, z, a, b, c) -- Working
 	if type(x) == 'table' and type(y) == 'table' and not (z and a and b and c) then
 		if x.x and y.x then
-			x,y,z,a,b,c = x.x, x.y, x.z, y.x, y.y, y.z
+			x, y, z, a, b, c = x.x, x.y, x.z, y.x, y.y, y.z
 		elseif #x == 3 and #y == 3 then
-			x,y,z,a,b,c = x[1], x[2], x[3], y[1], y[2], y[3]
+			x, y, z, a, b, c = x[1], x[2], x[3], y[1], y[2], y[3]
 		else
 			return -1
 		end
