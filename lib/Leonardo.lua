@@ -89,6 +89,7 @@ local slotNames = {
 
 local cityTemples = {
 	-- thanks @Donatello for finding the positions:
+	--{fx, lx, fy, ly, z}
 	{32953, 32966, 32072, 32081, 7}, -- venore
 	{32358, 32380, 32231, 32248, 7}, -- thais
 	{32357, 32363, 31776, 31787, 7}, -- carlin
@@ -107,6 +108,7 @@ local cityTemples = {
 	{32590, 32599, 32740, 32749, 6}, -- port hope
 	{32313, 32321, 32818, 32830, 7}, -- liberty bay
 	{32785, 32789, 31274, 31279, 7}, -- yalahar
+	{33586, 33602, 31896, 31903, 6}, -- oramond
 }
 
 -- LOCAL FUNCTIONS
@@ -983,6 +985,7 @@ end
 -- @param   {array}	 item¹, item², ..., item*	The array of items that must be moved could be name/ID or table {backpack, item[, amount]} or {backpack = 'backpack name', name = 'item name', amount = 100}.
 -- @returns {boolean}
 
+--@todo improve
 function withdrawitems(where, to, ...)
 	local items = {...}
 	local tempType = type(where)
