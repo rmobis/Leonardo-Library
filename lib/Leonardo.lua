@@ -1,8 +1,8 @@
 --[[
 	Leonardo's Library
 	Created: 15/01/2014
-	Updated: 17/07/2014
-	Version: 1.4.5
+	Updated: 04/09/2014
+	Version: 1.4.6
 
 	--> Summary:
 		--> Globals and Local variables
@@ -54,7 +54,7 @@
 -- GLOBALS AND LOCAL VARIABLES
 
 LIBS = LIBS or {}
-LIBS.LEONARDO = "1.4.5"
+LIBS.LEONARDO = "1.4.6"
 
 POLICY_NONE = 'None'
 POLICY_CAVEBOT = 'Cavebot'
@@ -85,6 +85,7 @@ local slotNames = {
 	["belt"]	= function() return {name = 'belt',	obj = $belt}	end,
 	["helmet"]	= function() return {name = 'head',	obj = $head}	end,
 	["head"]	= function() return {name = 'head',	obj = $head}	end,
+	["legs"]	= function() return {name = 'legs',	obj = $legs}	end,
 }
 
 local cityTemples = {
@@ -220,9 +221,9 @@ end
 -- MAIN FUNCTIONS
 
 -- @name	tosec
--- @desc				Converts a time formatted string into seconds.
--- @param   {string}	str	The string to convert
--- @returns {number}
+-- @desc	Converts a time formatted string into seconds.
+-- @param	{string}	str	The string to convert
+-- @returns	{number}
 
 function tosec(str) -- Working, by sirmate
 	local sum, time, units, index = 0, str:token(nil, ":"), {86400, 3600, 60, 1}, 1
@@ -235,10 +236,10 @@ function tosec(str) -- Working, by sirmate
 end
 
 -- @name	formatnumber
--- @desc			   Formats a number to show its units.
--- @param   {number}   num	 The number to be formatted
--- @param   {string}   sep	 The symbol to separate numbers, default is ",". (optional)
--- @returns {string}
+-- @desc	Formats a number to show its units.
+-- @param	{number}	num	The number to be formatted.
+-- @param	{string}	sep	The symbol to separate numbers, default is ",". (optional)
+-- @returns	{string}
 
 function formatnumber(n, s) -- Working, by sirmate
 	local result, sign, before, after, s = '', string.match(tostring(n), '^([%+%-]?)(%d*)(%.?.*)$'), s or ','
@@ -252,10 +253,10 @@ function formatnumber(n, s) -- Working, by sirmate
 end
 
 -- @name	formattime
--- @desc			   Converts a number to a date format string.
--- @param   {number}   num	 The number to be converted
--- @param   {string}   pattern The pattern to format number, default is "DD:HH:MM:SS". (optional)
--- @returns {string}
+-- @desc	Converts seconds to a time format string.
+-- @param	{number}	num	The number to be converted
+-- @param	{string}	pattern	The pattern to format number, default is "DD:HH:MM:SS". (optional)
+-- @returns	{string}
 
 function formattime(n, pattern) -- Working, by sirmate
 	local units = {DD = math.floor(n / 86400 % 7), HH = math.floor(n / 3600 % 24), MM = math.floor(n / 60 % 60), SS = math.floor(n % 60)}
@@ -276,9 +277,9 @@ function formattime(n, pattern) -- Working, by sirmate
 end
 
 -- @name	getareaposition
--- @desc				Returns the coordinates of the given special area.
--- @param   {string}	name	The special area name to check.
--- @returns {table}
+-- @desc	Returns the coordinates of the given special area.
+-- @param  	{string}	name	The special area name to check.
+-- @returns	{table}
 
 function getareaposition(name) -- working
 	local setting = getareasetting(name, 'Coordinates')
@@ -293,12 +294,12 @@ function getareaposition(name) -- working
 end
 
 -- @name	setareaposition
--- @desc			   Sets the special area initial position.
--- @param   {string}   name	The special area name.
--- @param   {number}   x	   The special area x coordinate. (optional)
--- @param   {number}   y	   The special area y coordinate. (optional)
--- @param   {number}   z	   The special area z coordinate. (optional)
--- @returns {null}
+-- @desc	Sets the special area initial position.
+-- @param	{string}	name	The special area name.
+-- @param	{number}	x	The special area x coordinate. (optional)
+-- @param	{number}	y	The special area y coordinate. (optional)
+-- @param	{number}	z	The special area z coordinate. (optional)
+-- @returns	{void}
 
 function setareaposition(name, x, y, z) -- Working
 	x, y, z = tonumber(x) or $posx, tonumber(y) or $posy, tonumber(z) or $posz
@@ -307,9 +308,9 @@ function setareaposition(name, x, y, z) -- Working
 end
 
 -- @name	getareasize
--- @desc				Returns the special area width and height.
--- @param   {string}	name	The special area name.
--- @returns {table}
+-- @desc	Returns the special area width and height.
+-- @param	{string}	name	The special area name.
+-- @returns	{table}
 
 function getareasize(name) -- working
 	local setting = getareasetting(name, 'Size')
@@ -324,11 +325,11 @@ function getareasize(name) -- working
 end
 
 -- @name	setareasize
--- @desc				Sets the width and height for a special area.
--- @param   {string}	name	The special area name.
--- @param   {number}	width   The width lenght. (optional)
--- @param   {number}	height  The height lenght. (optional)
--- @returns {null}
+-- @desc	Sets the width and height for a special area.
+-- @param	{string}	name	The special area name.
+-- @param	{number}	width	The width lenght. (optional)
+-- @param	{number}	height	The height lenght. (optional)
+-- @returns	{void}
 
 function setareasize(name, w, h) -- working
 	h, w = tonumber(h) or 1, tonumber(w) or 1
@@ -337,9 +338,9 @@ function setareasize(name, w, h) -- working
 end
 
 -- @name	getareapolicy
--- @desc				Returns the policy of a special area.
--- @param   {string}	name	The special area name.
--- @returns {string}
+-- @desc	Returns the policy of a special area.
+-- @param	{string}	name	The special area name.
+-- @returns	{string}
 
 function getareapolicy(name) -- working
 	local setting = getareasetting(name, 'Policy')
@@ -348,10 +349,10 @@ function getareapolicy(name) -- working
 end
 
 -- @name	setareapolicy
--- @desc				Sets the policy of a special area.
--- @param   {string}	name	The special area name.
--- @param   {string}	policy  The policy to setsetting. 'Cavebot', 'Targeting', 'Cavebot & Targeting' or 'None'. (optional)
--- @returns {null}
+-- @desc	Sets the policy of a special area.
+-- @param  	{string}	name	The special area name.
+-- @param  	{string}	policy  The policy to setsetting. 'Cavebot', 'Targeting', 'Cavebot & Targeting' or 'None'. (optional)
+-- @returns	{void}
 
 function setareapolicy(name, policy) -- working
 	if type(policy) == 'string' and not table.find({"cavebot", "cavebot & targeting", "targeting", "none"}, policy:lower()) then
@@ -366,9 +367,9 @@ function setareapolicy(name, policy) -- working
 end
 
 -- @name	getareaavoidance
--- @desc				Returns the avoidance of a special area.
--- @param   {string}	name	The special area name.
--- @returns {number}
+-- @desc	Returns the avoidance of a special area.
+-- @param	{string}	name	The special area name.
+-- @returns	{number}
 
 function getareaavoidance(name) -- working
 	local setting = getareasetting(name, 'Avoidance')
@@ -377,10 +378,10 @@ function getareaavoidance(name) -- working
 end
 
 -- @name	setareaavoidance
--- @desc				Sets the avoidance for a special area.
--- @param   {string}	name		The special area name.
--- @param   {number}	avoidance   The avoidance level. Minimum of 0 and maximum of 250. (optional)
--- @returns {number}
+-- @desc	Sets the avoidance for a special area.
+-- @param	{string}	name		The special area name.
+-- @param	{number}	avoidanc	The avoidance level. Minimum of 0 and maximum of 250. (optional)
+-- @returns	{number}
 
 function setareaavoidance(name, avoid) -- working
 	avoid = tonumber(avoid) or 0
@@ -389,10 +390,10 @@ function setareaavoidance(name, avoid) -- working
 end
 
 -- @name	getareaextrapolicy
--- @desc				Returns true if the extra policy given is enabled, false otherwise.
--- @param   {string}	name	The special area name.
+-- @desc	Returns true if the extra policy given is enabled, false otherwise.
+-- @param	{string}	name	The special area name.
 -- @param	{string}	type	The extra policy type as 'loot', 'lure', 'looting' or 'luring'.
--- @returns {boolean}
+-- @returns	{boolean}
 
 function getareaextrapolicy(name, poltype)
 	local t = type(poltype)
@@ -416,11 +417,11 @@ function getareaextrapolicy(name, poltype)
 end
 
 -- @name	setareaextrapolicy
--- @desc				Sets the extra policy for a special area.
--- @param   {string}	name		The special area name.
--- @param   {various}   poltype	 The policy type as 'loot', 'lure', 'looting' or 'luring'.
--- @param	{various}   toggle	  The value to turn option on or off as any true value or false value.
--- @returns {null}
+-- @desc	Sets the extra policy for a special area.
+-- @param	{string}	name		The special area name.
+-- @param	{mixed}		poltype	 The policy type as 'loot', 'lure', 'looting' or 'luring'.
+-- @param	{mixed}		toggle	  The value to turn option on or off as any true value or false value.
+-- @returns	{void}
 
 function setareaextrapolicy(name, poltype, t)
 	local typ = type(poltype)
@@ -441,10 +442,11 @@ function setareaextrapolicy(name, poltype, t)
 	return setareasetting(name, poltype, t)
 end
 
--- @name	getareatype
--- @desc				Returns the type name of a special area.
--- @param   {string}	name	 The special area name.
--- @returns {string}
+-- @name	setareatype
+-- @desc	Sets the type of a special area.
+-- @param	{string}	name	The special area name.
+-- @param	{mixed}		type	The area type as 'filled' or 'border', 1 for filled or 2 for border.
+-- @returns	{void}
 
 function getareatype(name)
 	return getareasetting(name, 'Type') or 'None'
@@ -481,57 +483,59 @@ function setareatype(name, areatype)
 end
 
 -- @name	getareacomment
--- @desc				Returns the comment of the special area given.
--- @param   {string}	name	 The special area name.
--- @returns {string}
+-- @desc	Returns the comment of the special area given.
+-- @param	{string}	name	The special area name.
+-- @returns	{string}
 
 function getareacomment(name)
 	return getareasetting(name, 'Comment') or ''
 end
 
--- @name	getareacomment
--- @desc				Sets the comment of the special area given.
--- @param   {string}	name	 The special area name.
--- @param   {string}	comment  The special area comment.
--- @returns {null}
+-- @name	setareacomment
+-- @desc	Sets the comment of the special area given.
+-- @param	{string}	name	The special area name.
+-- @param	{string}	comment	The special area comment.
+-- @returns	{void}
 
 function setareacomment(name, comment)
 	return setareasetting(name, 'Comment', comment or '')
 end
 
 -- @name	isbinded
--- @desc				Check if you have the current hotkeys binded on functions keyboard.
--- @param   {array}	 list	The list of the hotkeys to check.
--- @returns {boolean}
+-- @desc	Check if you have the current hotkeys binded on functions keyboard.
+-- @param	{array}		list	The list of the hotkeys to check.
+-- @returns	{boolean}
 
 function isbinded(...) -- working
 	local temp, i, arg, info = {}, 1, {...}
-
-	while arg[i] do
-		if type(arg[i]) == 'table' then
-			info = spellinfo(arg[i][1])
-			temp[i] = {key = arg[i][1], type = #info.words > 0 and info.itemid == 0, force = arg[i][2]}
-		else
-			info = spellinfo(arg[i])
-			temp[i] = {key = arg[i], type = #info.words > 0 and info.itemid == 0, force = "all"}
+	
+	if not $fasthotkeys then
+		while arg[i] do
+			if type(arg[i]) == 'table' then
+				info = spellinfo(arg[i][1])
+				temp[i] = {key = arg[i][1], type = #info.words > 0 and info.itemid == 0, force = arg[i][2]}
+			else
+				info = spellinfo(arg[i])
+				temp[i] = {key = arg[i], type = #info.words > 0 and info.itemid == 0, force = "all"}
+			end
+			
+			i = i + 1
 		end
-		
-		i = i + 1
-	end
-
-	for _, entry in ipairs(temp) do
-		local func, params = clientitemhotkey, {"self", "target", "crosshair"}
-
-		if entry.type then
-			func, params = clienttexthotkey, {"automatic", "manual"}
-		end
-
-		if entry.force and not table.find(params, entry.force:lower()) then
-			entry.force = 'all'
-		end
-
-		if func(entry.key, entry.force) == 'not found' then
-			return false
+	
+		for _, entry in ipairs(temp) do
+			local func, params = clientitemhotkey, {"self", "target", "crosshair"}
+	
+			if entry.type then
+				func, params = clienttexthotkey, {"automatic", "manual"}
+			end
+	
+			if entry.force and not table.find(params, entry.force:lower()) then
+				entry.force = 'all'
+			end
+	
+			if func(entry.key, entry.force) == 'not found' then
+				return false
+			end
 		end
 	end
 
@@ -539,12 +543,12 @@ function isbinded(...) -- working
 end
 
 -- @name	maroundfilter
--- @desc				Returns the amount of monsters found in the range distance. Optionally you can add a function to filter those creatures.
--- @param   {number}	range   The minimum distance range. (optional)
--- @param   {boolean}   floor   Set true to consider all floors or false to consider on the current floor. (optional)
--- @param   {array}	 list	The creature names list to consider. (optional)
--- @param   {function}  func	The filter function. (optional)
--- @returns {number}
+-- @desc	Returns the amount of monsters found in the range distance. Optionally you can add a function to filter those creatures.
+-- @param	{number}	range	The minimum distance range. (optional)
+-- @param	{boolean}	floor	Set true to consider all floors or false to consider on the current floor. (optional)
+-- @param	{array}		list	The creature names list to disconsider. (optional)
+-- @param	{function}	func	The filter function. (optional)
+-- @returns	{number}
 
 function maroundfilter(range, floor, ...) -- Working
 	local Creatures, Callback = {...}, function(c) return true end
@@ -572,12 +576,12 @@ function maroundfilter(range, floor, ...) -- Working
 end
 
 -- @name	maroundfilterignore
--- @desc				Returns the amount of monsters found in the range distance, excluding the creatures names found in the list. Optionally you can add a function to filter those creatures.
--- @param   {number}	range   The minimum distance range. (optional)
--- @param   {boolean}   floor   Set true to consider all floors or false to consider on the current floor. (optional)
--- @param   {array}	 list	The creature names list to disconsider. (optional)
--- @param   {function}  func	The filter function. (optional)
--- @returns {number}
+-- @desc	Returns the amount of monsters found in the range distance, excluding the creatures names found in the list. Optionally you can add a function to filter those creatures.
+-- @param	{number}	range	The minimum distance range. (optional)
+-- @param	{boolean}	floor	Set true to consider all floors or false to consider on the current floor. (optional)
+-- @param	{array}		list	The creature names list to disconsider. (optional)
+-- @param	{function}	func	The filter function. (optional)
+-- @returns	{number}
 
 function maroundfilterignore(range, floor, ...) -- Working
 	local Creatures, Callback = {...}, function(c) return true end
@@ -605,12 +609,12 @@ function maroundfilterignore(range, floor, ...) -- Working
 end
 
 -- @name	paroundfilter
--- @desc				Returns the amount of players found in the range distance, excluding the creatures names found in the list. Optionally you can add a function to filter those creatures.
--- @param   {number}	range   The minimum distance range. (optional)
--- @param   {boolean}   floor   Set true to consider all floors or false to consider on the current floor. (optional)
--- @param   {array}	 list	The creature names list to consider. (optional)
--- @param   {function}  func	The filter function. (optional)
--- @returns {number}
+-- @desc	Returns the amount of players found in the range distance, excluding the creatures names found in the list. Optionally you can add a function to filter those creatures.
+-- @param	{number}	range	The minimum distance range. (optional)
+-- @param	{boolean}	floor	Set true to consider all floors or false to consider on the current floor. (optional)
+-- @param	{array}		list	The creature names list to disconsider. (optional)
+-- @param	{function}	func	The filter function. (optional)
+-- @returns	{number}
 
 function paroundfilter(range, floor, ...) -- Working
 	local Creatures, Callback = {...}, function(c) return true end
@@ -638,12 +642,12 @@ function paroundfilter(range, floor, ...) -- Working
 end
 
 -- @name	paroundfilterignore
--- @desc				Returns the amount of players found in the range distance, excluding the creature names found in the list. Optionally you can add a function to filter those creatures.
--- @param   {number}	range   The minimum distance range. (optional)
--- @param   {boolean}   floor   Set true to consider all floors or false to consider on the current floor. (optional)
--- @param   {array}	 list	The creature names list to disconsider. (optional)
--- @param   {function}  func	The filter function. (optional)
--- @returns {number}
+-- @desc	Returns the amount of players found in the range distance, excluding the creature names found in the list. Optionally you can add a function to filter those creatures.
+-- @param	{number}	range	The minimum distance range. (optional)
+-- @param	{boolean}	floor	Set true to consider all floors or false to consider on the current floor. (optional)
+-- @param	{array}		list	The creature names list to disconsider. (optional)
+-- @param	{function}	func	The filter function. (optional)
+-- @returns	{number}
 
 function paroundfilterignore(range, floor, ...) -- Working
 	local Creatures, Callback = {...}, function(c) return true end
@@ -671,11 +675,11 @@ function paroundfilterignore(range, floor, ...) -- Working
 end
 
 -- @name	unrust
--- @desc				Uses rust remover on all the valid rust items found.
--- @param   {boolean}   ignore  Set true to ignore common rust items or false to consider this type.
--- @param   {boolean}   drop	Set true to drop trash items.
--- @param   {number}	value   Set the minimum value to consider items below this value as trash. (optional)
--- @returns {null}
+-- @desc	Uses rust remover on all the valid rust items found.
+-- @param	{boolean}	ignore	Set true to ignore common rust items or false to consider this type. (optional)
+-- @param	{boolean}	drop	Set true to drop trash items. (optional)
+-- @param	{number}	value	Set the minimum value to consider items below this value as trash. (optional)
+-- @returns	{void}
 
 function unrust(ignore, drop, value) -- Working
 	local IgnoreCommon = ignore or true
@@ -729,10 +733,10 @@ function unrust(ignore, drop, value) -- Working
 end
 
 -- @name	antifurnituretrap
--- @desc				Breaks all the destructible items that block the path of your character.
--- @param   {various}   weapon  The weapon name or ID to use.
--- @param   {number}	stand	The maximum time to wait before start breaking items.
--- @returns {integer}
+-- @desc	Breaks all the destructible items that block the path of your character.
+-- @param	{various}	weapo	The weapon name or ID to use.
+-- @param	{number}	stand	The maximum time in seconds to wait before start breaking items.
+-- @returns	{number, string}
 
 function antifurnituretrap(weapon, stand) -- Working
 	weapon = weapon or 'Machete'
@@ -823,14 +827,14 @@ function antifurnituretrap(weapon, stand) -- Working
 end
 
 -- @name	getdistancebetween
--- @desc				Returns the distance between positions given or -1 if it's not located on the same floor.
--- @param   {various}   x   The x-axis position or the table with starting coordinates.
--- @param   {various}   y   The y-axis position or the table with destiny coordinates.
--- @param   {number}	z   The z-axis position.
--- @param   {number}	a   The x-axis destiny position.
--- @param   {number}	b   The y-axis destiny position.
--- @param   {number}	c   The z-axis destiny position.
--- @returns {number}
+-- @desc	Returns the distance between positions given or -1 if it's not located on the same floor.
+-- @param	{mixed		x	The x-axis position or the table with starting coordinates.
+-- @param	{mixed		y	The y-axis position or the table with destiny coordinates.
+-- @param	{number}	z	The z-axis position.
+-- @param	{number}	a	The x-axis destiny position.
+-- @param	{number}	b	The y-axis destiny position.
+-- @param	{number}	c	The z-axis destiny position.
+-- @returns	{number}
 
 function getdistancebetween(x, y, z, a, b, c) -- Working
 	if type(x) == 'table' and type(y) == 'table' and not (z and a and b and c) then
@@ -847,10 +851,9 @@ function getdistancebetween(x, y, z, a, b, c) -- Working
 end
 
 -- @name	isabletocast
--- @desc				Returns true if you are able to cast spell given.
--- @param   {various}   spell   The spell object, name or words.
--- @param   {various}   creature	The creature object, name or ID. (optional)
--- @returns {boolean}
+-- @desc	Returns true if you are able to cast spell given.
+-- @param	{mixed}		spel	The spell object, name or words.
+-- @returns	{boolean}
 
 function isabletocast(spell) -- Working
 	spell = ('userdata|table'):find(type(spell)) ~= nil and spell or spellinfo(spell)
@@ -859,10 +862,10 @@ function isabletocast(spell) -- Working
 end
 
 -- @name	cancast
--- @desc				Returns true if you are able to cast spell given and if the duration period for that spell has been depleted, optionally you can check if it's able to cast on to a creature.
--- @param   {various}   spell	   The spell object, name or words.
--- @param   {various}   creature	The creature object, name or ID. (optional)
--- @returns {boolean}
+-- @desc	Returns true if you are able to cast spell given and if the duration period for that spell has been depleted, optionally you can check if it's able to cast on to a creature.
+-- @param	{mixed}		spell	The spell object, name or words.
+-- @param	{mixed}		cre	The creature object, name or ID. (optional)
+-- @returns	{boolean}
 
 function cancast(spell, cre) -- Working
 	spell = ('userdata|table'):find(type(spell)) ~= nil and spell or spellinfo(spell)
@@ -881,11 +884,11 @@ function cancast(spell, cre) -- Working
 end
 
 -- @name	unequipitem
--- @desc				Unequip an item located at the equipment slot given.
--- @param   {string}	slot	The equipment slot name.
--- @param   {string}	bp	  The backpack to move item on. (optional)
--- @param   {number}	amount  The amount of items to move on. (optional)
--- @returns {null}
+-- @desc	Unequip an item located at the equipment slot given.
+-- @param	{string}	slot	The equipment slot name.
+-- @param	{string}	bp	The backpack to move item on. (optional)
+-- @param	{number}	amount	The amount of items to move on. (optional)
+-- @returns	{void}
 
 function unequipitem(slot, bp, amount) -- Working
 	slot = slotNames[slot:lower()]
@@ -907,9 +910,9 @@ function unequipitem(slot, bp, amount) -- Working
 end
 
 -- @name	isinsidearea
--- @desc				Returns true if you are located inside an area with the range coordinates given.
--- @param   {table}	 list	The area(s) range(s) in the format: {minimum x, maximum x, minimum y, maximum y, z}.
--- @returns {boolean}
+-- @desc	Returns true if you are located inside an area with the range coordinates given.
+-- @param	{table}		list	The area(s) range(s) in the format: {minimum x, maximum x, minimum y, maximum y, z}.
+-- @returns	{boolean}
 
 function isinsidearea(...) -- Working
 	local SpecialAreas = {...}
@@ -932,19 +935,19 @@ function isinsidearea(...) -- Working
 end
 
 -- @name	pvpworld
--- @desc				Returns true if you are in a player versus player world, false otherwise.
--- @returns {boolean}
+-- @desc	Returns true if you are in a player versus player world, false otherwise.
+-- @returns	{boolean}
 
 function pvpworld() -- Working
 	return table.find({"Astera", "Calmera", "Candia", "Celesta", "Fidera", "Guardia", "Harmonia", "Honera", "Luminera", "Magera", "Menera", "Nerana", "Olympa", "Pacera", "Refugia", "Secura", "Unitera"}, $worldname) == nil
 end
 
 -- @name	checklocation
--- @desc				Checks if you are inside the waypoint location within the range given, if not goes to the label of section given, if section and label are not given, returns false or true if you are inside the location.
--- @param   {various}   dist	The area range distance or the statement to check like: checklocation(islocation(7)).
--- @param   {various}   label   The label name or ID to go. (optional)
--- @param   {string}	section The label section name. (optional)
--- @returns {boolean}
+-- @desc	Checks if you are inside the waypoint location within the range given, if not goes to the label of section given, if section and label are not given, returns false or true if you are inside the location.
+-- @param	{mixed}		dist	The area range distance or the statement to check like: checklocation(islocation(7)).
+-- @param	{mixed}		label	The label name or ID to go. (optional)
+-- @param	{string}	section	The label section name. (optional)
+-- @returns	{boolean}
 
 function checklocation(dist, label, section) -- Working
 	local t = type(dist)
@@ -968,8 +971,8 @@ function checklocation(dist, label, section) -- Working
 end
 
 -- @name	isontemple
--- @desc				Returns true if you are inside a temple, false otherwise.
--- @returns {boolean}
+-- @desc	Returns true if you are inside a temple, false otherwise.
+-- @returns	{boolean}
 
 function isontemple()
 	local temp = isinsidearea(cityTemples)
@@ -983,28 +986,35 @@ function isontemple()
 end
 
 -- @name	withdrawitems
--- @desc				Withdraws items on your depot or inbox to the given containers.
--- @param   {string}	cont	The container where the items are located and will be moved.
--- @param   {string}	move	The container where the items will be moved. (optional)
--- @param   {array}	 item¹, item², ..., item*	The array of items that must be moved could be name/ID or table {backpack, item[, amount]} or {backpack = 'backpack name', name = 'item name', amount = 100}.
--- @returns {boolean}
+-- @desc	Withdraws items on your depot or inbox or any other container to the given containers.
+-- @param	{string}	cont	The container where the items are located and will be moved.
+-- @param	{string}	move	The container where the items will be moved. (optional)
+-- @param	{array}		items	The array of items that must be moved could be name/ID or table {backpack, item[, amount]} or {backpack = 'backpack name', name = 'item name', amount = 100}.
+-- @param	{function}	delay	The delay waiting function between movements. (Defaults to waitping(1.5, 2))
+-- @returns	{boolean}
 
---@todo improve
 function withdrawitems(where, to, ...)
 	local items = {...}
 	local tempType = type(where)
-
+	local waitFunc = function()
+		return waitping(1.5, 2)
+	end
+	
 	if tempType == 'string' then
 		where = where:lower()
 
 		if where:find('depot') or where:find('chest') then
+			-- user input depot, but the correct name is 'Depot Chest'
 			where = 'Depot Chest'
 		elseif where:find('inbox') then
+			-- used input inbox, but the correct name is 'Your Inbox'
 			where = 'Your Inbox'
 		else
-			where = itemname(where)
+			-- used input any container name
+			where = getlootingdestination(where) or itemname(where)
 		end
 	elseif tempType == 'userdata' and where.objtype == 'container' then
+		-- user input any container object, we only want the name
 		where = where.name
 	else
 		return false
@@ -1013,33 +1023,48 @@ function withdrawitems(where, to, ...)
 	tempType = type(to)
 
 	if tempType == 'table' then
-		table.insert(items, to)
+		-- user input a table of items
+		table.insert(items, 1, to)
 		to = '0-15'
 	elseif tempType == 'string' then
 		if getcontainer(to).name == '' and tonumber(to:sub(1,1)) == nil then
+			-- used input a invalid container and invalid index
 			return false
 		end
+		
+		to = getlootingdestination(to) or itemname(to)
 	elseif tempType == 'userdata' and to.objtype == 'container' then
+		-- used input a container object, we only want the name
 		to = to.name
+	end
+
+	if type(items[#items]) == 'function' then
+		waitFunc = table.remove(items)
 	end
 
 	for _, item in ipairs(items) do
 		tempType = type(item)
 
 		if tempType == 'table' then
-			local bp, id, amount = item.backpack or item[1], item.name or item[2], item.amount or item[3]
+			local bp, id, amount = itemname(item.backpack or item.bp or item[1]), item.name or item[2], item.amount or item.count or item[3] or 100
 
-			if id and bp then
-				amount = amount or 100
-				moveitemsupto(id, amount + itemcount(id, bp), bp, from) waitping()
+			if id and bp and amount then
+				moveitemsupto(id, amount + itemcount(id, bp), bp, from) waitFunc()
 			end
-		elseif ('string|number'):find(tempType) then
-			moveitems(item, to, where) waitping()
+		elseif tempType == 'number' or tempType == 'string' then
+			moveitems(item, to, where) waitFunc()
 		end
 	end
 
 	return true
 end
+
+-- @name	screentiles
+-- @desc	Returns the x/y/z axis of the screen in a order given modified by a given function.
+-- @param	{function}	sortf	The sorting function to organize positions order. (optional)
+-- @param	{mixed}		area	This could be a table with measurements for the axis of the area or a distance number of a radius area. (optional)
+-- @param	{function}	mod	The modifier function, this function will receive as arguments the x/y/z parameters and return a value, the screentiles will return this value instead of the coordinates. (optional)
+-- @returns	{integer, integer, integer or mixed}
 
 function screentiles(sortf, area, func)
 	local tempType, xs, ys, xe, ye, Positions, i = type(sortf), -7, -5, 7, 5, {}, 0
