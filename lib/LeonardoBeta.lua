@@ -2,7 +2,7 @@
 	Leonardo's Library
 	Created: 15/01/2014
 	Updated: 04/08/2014
-	Version: 1.4.6 beta
+	Version: 1.5.0 beta
 
 	--> Summary:
 		--> Globals and Local variables
@@ -64,8 +64,6 @@ POLICY_ALL = 'Cavebot & Targeting'
 AREA_SQUARE_FILLED = 'Square (Filled)'
 AREA_SQUARE_BORDER = 'Square (Border Only)'
 AREA_SQUARE_DOUBLE_BORDER = 'Square (Double Border)'
-
-BOT_VERSION = (tonumber($botversion:sub(1,1)) * 100) + (tonumber($botversion:sub(3,3)) * 10) + tonumber($botversion:sub(5,5))
 
 local SPELLINFO_OBJECT = BOT_VERSION >= 207 and 'userdata' or 'table'
 local SA_POLICY = {POLICY_CAVEBOT, POLICY_TARGETING, POLICY_ALL}
@@ -174,6 +172,11 @@ local function setareasetting(name, setting, v)
 end
 
 -- EXTENSION CLASS
+
+function botversion(n)
+	return (tonumber(n:sub(1,1)) * 100) + (tonumber(n:sub(3,3)) * 10) + tonumber(n:sub(5,5))
+end
+BOT_VERSION = botversion($botversion)
 
 function printf(str, ...)
 	return print(sprintf(str, ...))
