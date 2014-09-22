@@ -1,60 +1,20 @@
 --[[
 	Leonardo's Library
 	Created: 15/01/2014
-	Updated: 04/08/2014
 	Version: 1.5.0 beta
+	Updated: 04/08/2014
+	
+	Last Changelog:
+	
+	Created botversion: returns a number variation of the already existent $botversion which returns string
+	Finish table.search
+--]]
 
-	--> Summary:
-		--> Globals and Local variables
-		--> Local functions
-
-		--> Extension Class
-			-- printf;
-			-- sprintf;
-			-- loadstringf;
-			-- printerrorf;
-
-		--> Main functions
-			--> formatnumber;
-			--> formattime;
-			--> getareaposition;
-			--> setareaposition;
-			--> getareasize;
-			--> setareasize;
-			--> getareapolicy;
-			--> setareapolicy;
-			--> getareaavoidance;
-			--> setareaavoidance;
-			--> getareaextrapolicy;
-			--> setareaextrapolicy;
-			--> getareatype;
-			--> setareatype;
-			--> isbinded;
-			--> maroundfilter;
-			--> maroundfilterignore;
-			--> paroundfilter;
-			--> paroundfilterignore;
-			--> unrust;
-			--> antifurnituretrap;
-			--> isabletocast;
-			--> cancast;
-			--> unequipitem;
-			--> isontemple;
-			--> withdrawitems;
-			--> screentiles;
-
-		--> Fixes and Function Extensions
-			-- antifurniture;
-			-- unequip;
-			-- cast;
-		<--
-	<--
-]]--
 
 -- GLOBALS AND LOCAL VARIABLES
 
 LIBS = LIBS or {}
-LIBS.LEONARDO = "1.4.6"
+LIBS.LEONARDO = "1.5.0 beta"
 
 POLICY_NONE = 'None'
 POLICY_CAVEBOT = 'Cavebot'
@@ -65,7 +25,6 @@ AREA_SQUARE_FILLED = 'Square (Filled)'
 AREA_SQUARE_BORDER = 'Square (Border Only)'
 AREA_SQUARE_DOUBLE_BORDER = 'Square (Double Border)'
 
-local SPELLINFO_OBJECT = BOT_VERSION >= 207 and 'userdata' or 'table'
 local SA_POLICY = {POLICY_CAVEBOT, POLICY_TARGETING, POLICY_ALL}
 local SA_TYPE = {AREA_SQUARE_FILLED, AREA_SQUARE_BORDER, AREA_SQUARE_DOUBLE_BORDER}
 
@@ -193,6 +152,53 @@ end
 function printerrorf(str, ...)
 	return printerror(sprintf(str, ...))
 end
+
+function table.search(self, value, argument, ...)
+	local typeVal = type(value)
+	local typeArg = type(argument)
+	local val1, val2
+	local args = {...}
+	local argslen = #args
+	
+	if typeVal == 'string' then
+		if typeArg == 'boolean' then
+			table.insert(args, 1, argument)
+			argument = nil
+		end
+		
+		-- string options
+		-- disconsider case, partial match
+		val1, val2 = unpack(args)
+	elseif typeVal == 'number' then
+		if typeArg == 'number' and argslen == 1 then
+			table.insert(args, 1, argument)
+			argument = nil
+		end
+		
+		-- number options
+		-- between min, between max
+		val1, val2 = unpack(args)
+	elseif typeVal == 'boolean' then
+		if typeArg == 'boolean' then
+			table.insert(args, 1, argument)
+			argument = nil
+		end
+		
+		-- bool options
+		-- convert values to bool
+		val1 = args[1]
+	end
+	
+	for k, v in pairs(self) do
+		if typeVal == 'string' then
+			local str1, str2, str3
+			
+			if val1 then
+				str1, str2, str3 = v:lower(), value:lower(), (argument ~= nil and k[argument] or ''):lower()
+				
+			if v == value or (val1 and v:lower() == value:lower()
+		
+		
 
 function table.tostring(self, name, sep)
 	if name and not sep then
@@ -360,9 +366,11 @@ end
 -- @returns	{void}
 
 function setareapolicy(name, policy) -- working
-	if type(policy) == 'string' and not table.find({"cavebot", "cavebot & targeting", "targeting", "none"}, policy:lower()) then
+	local polType = type(policy)
+	
+	if polType == 'string' and not table.find({"cavebot", "cavebot & targeting", "targeting", "none"}, policy:lower()) then
 		policy = "None"
-	elseif type(policy) == 'number' and policy > 0 and policy <= 3 then
+	elseif polType == 'number' and policy > 0 and policy <= 3 then
 		policy = SA_POLICY[policy]
 	else
 		policy = "None"
@@ -1148,7 +1156,7 @@ end
 
 -- FIXES AND GENERAL EXTENSIONS
 
--- extend function
+-- extend aliases
 unequip = unequip or unequipitem
 antifurniture = antifurniture or antifurnituretrap
 
@@ -1161,4 +1169,4 @@ function cast(...)
 	return __FUNCTIONS.CAST(...)
 end
 
-printf("Leonardo's library loaded, version: %s", LIBS.LEONARDO)
+printf("Leonardo\'s library loaded, version: %s", LIBS.LEONARDO)
