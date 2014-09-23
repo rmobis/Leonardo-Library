@@ -7,7 +7,8 @@
 	Last Changelog:
 	
 	Created botversion: returns a number variation of the already existent $botversion which returns string
-	Finish table.search
+	Created table.search: a new table.find which allow advanced searching methods for different values
+	Must Add Display class
 --]]
 
 
@@ -29,22 +30,23 @@ local SA_POLICY = {POLICY_CAVEBOT, POLICY_TARGETING, POLICY_ALL}
 local SA_TYPE = {AREA_SQUARE_FILLED, AREA_SQUARE_BORDER, AREA_SQUARE_DOUBLE_BORDER}
 
 local slotNames = {
-	["amulet"]	= function() return {name = 'neck',	obj = $neck}	end,
-	["neck"]	= function() return {name = 'neck',	obj = $neck}	end,
-	["weapon"]	= function() return {name = 'rhand',	obj = $rhand}	end,
-	["rhand"]	= function() return {name = 'rhand',	obj = $rhand}	end,
-	["shield"]	= function() return {name = 'lhand',	obj = $lhand}	end,
-	["lhand"]	= function() return {name = 'lhand',	obj = $lhand}	end,
-	["ring"]	= function() return {name = 'finger',	obj = $finger}	end,
-	["finger"]	= function() return {name = 'finger',	obj = $finger}	end,
-	["armor"]	= function() return {name = 'chest',	obj = $chest}	end,
-	["chest"]	= function() return {name = 'chest',	obj = $chest}	end,
-	["boots"]	= function() return {name = 'feet',	obj = $feet}	end,
-	["feet"]	= function() return {name = 'feet',	obj = $feet}	end,
-	["ammo"]	= function() return {name = 'belt',	obj = $belt}	end,
-	["belt"]	= function() return {name = 'belt',	obj = $belt}	end,
-	["helmet"]	= function() return {name = 'head',	obj = $head}	end,
-	["head"]	= function() return {name = 'head',	obj = $head}	end,
+	["amulet"] = function() return {name = 'neck', obj = $neck} end,
+	["neck"] = function() return {name = 'neck', obj = $neck} end,
+	["weapon"] = function() return {name = 'rhand', obj = $rhand} end,
+	["rhand"] = function() return {name = 'rhand', obj = $rhand} end,
+	["shield"] = function() return {name = 'lhand', obj = $lhand} end,
+	["lhand"] = function() return {name = 'lhand', obj = $lhand} end,
+	["ring"] = function() return {name = 'finger', obj = $finger} end,
+	["finger"] = function() return {name = 'finger', obj = $finger} end,
+	["armor"] = function() return {name = 'chest', obj = $chest} end,
+	["chest"] = function() return {name = 'chest', obj = $chest} end,
+	["boots"] = function() return {name = 'feet', obj = $feet} end,
+	["feet"] = function() return {name = 'feet', obj = $feet} end,
+	["ammo"] = function() return {name = 'belt', obj = $belt} end,
+	["belt"] = function() return {name = 'belt', obj = $belt} end,
+	["helmet"] = function() return {name = 'head', obj = $head} end,
+	["head"] = function() return {name = 'head', obj = $head} end,
+	["legs"] = function() return {name = 'legs', obj = $legs} end,
 }
 
 local cityTemples = {
@@ -70,6 +72,14 @@ local cityTemples = {
 	{32785, 32789, 31274, 31279, 7}, -- yalahar
 	{33586, 33602, 31896, 31903, 6}, -- oramond
 }
+
+ORDER_RADIAL = function(a, b) return getdistancebetween(a, {$posx, $posy, $posz}) < getdistancebetween(b, {$posx, $posy, $posz}) end
+ORDER_RADIAL_REVERSE = function(a, b) return ORDER_RADIAL(b, a) end
+ORDER_EUCLIDEAN = function(a, b) return math.sqrt(math.abs(a[1] - $posx)^2 + math.abs(a[2] - $posy)^2) > math.sqrt(math.abs(b[1] - $posx)^2 + math.abs(b[2] - $posy)^2) end
+ORDER_EUCLIDEAN_REVERSE = function(a, b) return ORDER_EUCLIDEAN(b, a) end
+ORDER_REALDIST = function(a, b) return math.abs((a[1] - $posx) + (a[2] - $posy)) > math.abs((b[1] - $posx) + (b[2] - $posy)) end
+ORDER_REALDIST_REVERSE = function(a, b) return ORDER_REALDIST(b, a) end
+ORDER_RANDOM = function(a, b) return (a[1] * a[2] * a[3]) % LIB_CACHE.screentiles < (b[1] * b[2] * b[3]) % LIB_CACHE.screentiles end
 
 -- LOCAL FUNCTIONS
 
@@ -918,34 +928,6 @@ function screentiles(sortf, area, func)
 
 		return
 	end
-end
-
-function ORDER_RADIAL(a, b)
-	return getdistancebetween(a, {$posx, $posy, $posz}) < getdistancebetween(b, {$posx, $posy, $posz})
-end
-
-function ORDER_RADIAL_REVERSE(a, b)
-	return ORDER_RADIAL(b, a)
-end
-
-function ORDER_EUCLIDEAN(a, b)
-	return math.sqrt(math.abs(a[1] - $posx)^2 + math.abs(a[2] - $posy)^2) > math.sqrt(math.abs(b[1] - $posx)^2 + math.abs(b[2] - $posy)^2)
-end
-
-function ORDER_EUCLIDEAN_REVERSE(a, b)
-	return ORDER_EUCLIDEAN(b, a)
-end
-
-function ORDER_REALDIST(a, b)
-	return math.abs((a[1] - $posx) + (a[2] - $posy)) > math.abs((b[1] - $posx) + (b[2] - $posy))
-end
-
-function ORDER_REALDIST_REVERSE(a, b)
-	return ORDER_REALDIST(b, a)
-end
-
-function ORDER_RANDOM(a, b)
-	return (a[1] * a[2] * a[3]) % LIB_CACHE.screentiles < (b[1] * b[2] * b[3]) % LIB_CACHE.screentiles
 end
 
 -- FIXES AND GENERAL EXTENSIONS
