@@ -2,20 +2,20 @@
 	Leonardo's Library
 	Created: 15/01/2014
 	Version: 1.5.0 beta
-	Updated: 04/08/2014
+	Updated: 02/10/2014
 	
 	Last Changelog:
 	
-	Created botversion: returns a number variation of the already existent $botversion which returns string
-	Created table.search: a new table.find which allow advanced searching methods for different values
-	Must Add Display class
+	Added botversion: returns a number variation of the already existent $botversion which returns string
+	Added table.search: a new table.find which allow advanced searching methods for different values
+	Added Incomplete Display class
 --]]
 
 
 -- GLOBALS AND LOCAL VARIABLES
 
 LIBS = LIBS or {}
-LIBS.LEONARDO = "1.5.0 beta"
+LIBS.LEONARDO = "1.5.0b"
 
 POLICY_NONE = 'None'
 POLICY_CAVEBOT = 'Cavebot'
@@ -928,6 +928,57 @@ function screentiles(sortf, area, func)
 
 		return
 	end
+end
+
+--[[	Display Class
+	In construction
+]]--
+
+Display = {}
+Display.__index = Display
+Display.__class = "Display"
+Display.__mouseinfo = {
+	-- variables
+	INSIDE = false,
+	POSX = 0,
+	TEMPX = 0,
+	POSY = 0,
+	TEMPY = 0,
+	CLICK = false,
+	EVENT = 0,
+	DRAGGING = false,
+	DRAGEVENT = 0,
+	
+	-- callbacks
+	INSIDECALL = function() return self.__mouseinfo.INSIDE end,
+	ONCLICK = function() return self.__mouseinfo.CLICK end,
+	ONDRAG = function() return self.__mouseinfo.DRAGGING end,
+	ONEVENT = function(e) return self.__mouseinfo.EVENT == e end,
+	
+}
+	
+function Display.New()
+	return setmetatable({}, Display)
+end
+
+function Display:SetDragEvent(eventid)
+	self__mouseinfo.DRAGEVENT = eventid,
+end
+
+function Display:SetMouseInput(e)
+	self.__mouseinfo.INSIDE = e.elementid == self._id
+	self.__mouseinfo.POSX = $cursor.x
+	self.__mouseinfo.POSY = $cursor.y
+	self.__mouseinfo.CLICK = e.elementid == self._id and (e.type == LMOUSE_UP or e.type == LMOUSE_DOWN or e.type == RMOUSE_UP or e.type == RMOUSE_DOWN or e.type == MMOUSE_UP or e.type == MMOUSE_DOWN)
+	self.__mouseinfo.EVENT = e.type
+	self.__mouseinfo.DRAGGING = e.type == self.__mouseinfo.DRAGEVENT
+end
+
+function Display:SetEventCallbacks(onEnter, onClick, onDrag, onEvent)
+	self.__mouseinfo.INSIDECALL = onEnter
+	self.__mouseinfo.ONCLICK = onClick
+	self.__mouseinfo.ONDRAG = onDrag
+	self.__mouseinfo.ONEVENT = onEvent
 end
 
 -- FIXES AND GENERAL EXTENSIONS
