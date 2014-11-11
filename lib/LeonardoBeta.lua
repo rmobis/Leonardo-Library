@@ -2,13 +2,14 @@
 	Leonardo's Library
 	Created: 15/01/2014
 	Version: 1.5.0 beta
-	Updated: 21/10/2014
+	Updated: 10/11/2014
 	
 	Last Changelog:
 	
 	Added botversion: returns a number variation of the already existent $botversion which returns string
-	Added table.search: a new table.find which allow advanced searching methods for different values
+	Added table.search: a new table.find which allow advanced searching methods for different value types
 	Added Incomplete Display class (still missing)
+	Added drawvector: a hud function to draw a vector between a/b-x/y axis
 --]]
 
 
@@ -930,6 +931,9 @@ function screentiles(sortf, area, func)
 	end
 end
 
+function drawvector(x1, y1, x2, y2) -- by Lucas Terra
+	return drawline(x1, y1, math.abs(x2-x1), math.abs(y2-y1))
+end
 --[[	Display Class
 	In construction
 ]]--
