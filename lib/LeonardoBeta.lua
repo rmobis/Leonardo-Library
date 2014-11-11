@@ -8,7 +8,6 @@
 	
 	Added botversion: returns a number variation of the already existent $botversion which returns string
 	Added table.search: a new table.find which allow advanced searching methods for different value types
-	Added Incomplete Display class (still missing)
 	Added drawvector: a hud function to draw a vector between a/b-x/y axis
 --]]
 
@@ -144,9 +143,11 @@ end
 -- EXTENSION CLASS
 
 function botversion(n)
+	n = n or $botversion
+	
 	return (tonumber(n:sub(1,1)) * 100) + (tonumber(n:sub(3,3)) * 10) + tonumber(n:sub(5,5))
 end
-BOT_VERSION = botversion($botversion)
+BOT_VERSION = botversion()
 
 function printf(str, ...)
 	return print(sprintf(str, ...))
@@ -210,7 +211,7 @@ function table.search(self, value, argument, ...)
 			if v == value or argument and k[argument] == value or (val1 and val2 and (v < val2 and v > val1 or argument and k[argument] < val2 and k[argument] > val1)) then
 				return k
 			end
-		elseif typeVal == 'boolean' and type(k[argument or v) == 'boolean' then
+		elseif typeVal == 'boolean' and type(k[argument] or v) == 'boolean' then
 			if v == value or argument and k[argument] == value or (val1 and tobool(argument and k[argument] or v)) then
 				return k
 			end
@@ -624,7 +625,7 @@ function antifurnituretrap(weapon, stand)
 	stand = (stand or 0) * 1000
 
 	if clientitemhotkey(weapon, 'crosshair') == 'not found' and itemcount(weapon) == 0 then
-		return 1, "AntiFurniture[Issue1]: 'Weapon' given not found on hotkeys and not visible."
+		return "AntiFurniture[Issue1]: 'Weapon' given not found on hotkeys and not visible."
 	end
 
 	if $standtime > stand then
@@ -654,7 +655,7 @@ function antifurnituretrap(weapon, stand)
 				foreach newmessage m do
 					if m.content:match("You are not invited") then
 						LIB_CACHE.antifurniture[ground(x, y, z)] = true
-						return 4, "AntiFurniture[Issue4]: Cancelling routine due to an item inside a house. (top item)"
+						return "AntiFurniture[Issue4]: Cancelling routine due to an item inside a house. (top item)"
 					end
 				end
 
@@ -665,7 +666,7 @@ function antifurnituretrap(weapon, stand)
 						foreach newmessage m do
 							if m.content:match("You are not invited") then
 								LIB_CACHE.antifurniture[ground(x, y, z)] = true
-								return 4, "AntiFurniture[Issue4]: Cancelling routine due to an item inside a house. (top item)"
+								return "AntiFurniture[Issue4]: Cancelling routine due to an item inside a house. (top item)"
 							end
 						end
 					end
@@ -684,7 +685,7 @@ function antifurnituretrap(weapon, stand)
 									foreach newmessage m do
 										if m.content:match("You are not invited") then
 											LIB_CACHE.antifurniture[ground(x, y, z)] = true
-											return 3, "AntiFurniture[Issue3]: Cancelling routine due to an item inside a house. (browsing field)"
+											return "AntiFurniture[Issue3]: Cancelling routine due to an item inside a house. (browsing field)"
 										end
 									end
 								end
@@ -698,13 +699,13 @@ function antifurnituretrap(weapon, stand)
 				pausewalking(0)
 			end
 		else
-			return 5, "AntiFurniture[Issue5]: Character is standing still without furnitures to break."
+			return "AntiFurniture[Issue5]: Character is standing still without furnitures to break."
 		end
 	else
-		return 2, "AntiFurniture[Issue2]: Current standtime less than the required time."
+		return "AntiFurniture[Issue2]: Current standtime less than the required time."
 	end
 
-	return 0, "AntiFurniture[No Issue]"
+	return "AntiFurniture[No Issue]"
 end
 
 function getdistancebetween(x, y, z, a, b, c)
@@ -722,13 +723,13 @@ function getdistancebetween(x, y, z, a, b, c)
 end
 
 function isabletocast(spell)
-	spell = SPELLINFO_OBJECT:find(type(spell)) ~= nil and spell or spellinfo(spell)
+	spell = ("userdata|table"):find(type(spell)) ~= nil and spell or spellinfo(spell)
 
 	return spell.cancast
 end
 
 function cancast(spell, cre)
-	spell = SPELLINFO_OBJECT:find(type(spell)) ~= nil and spell or spellinfo(spell)
+	spell = ("userdata|table"):find(type(spell)) ~= nil and spell or spellinfo(spell)
 
 	local cool, strike = LIB_CACHE.cancast[spell.name:lower()] or 0, false
 
@@ -914,6 +915,7 @@ function screentiles(sortf, area, func)
 		end
 	end
 
+	-- little trick to get random values for ORDER_RANDOM every time this function is used
 	LIB_CACHE.screentiles = math.random(10^2, 10^4)
 
 	if sortf then
@@ -934,56 +936,6 @@ end
 function drawvector(x1, y1, x2, y2) -- by Lucas Terra
 	return drawline(x1, y1, math.abs(x2-x1), math.abs(y2-y1))
 end
---[[	Display Class
-	In construction
-]]--
-
-Display = {}
-Display.__index = Display
-Display.__class = "Display"
-Display.__mouseinfo = {
-	-- variables
-	INSIDE = false,
-	POSX = 0,
-	TEMPX = 0,
-	POSY = 0,
-	TEMPY = 0,
-	CLICK = false,
-	EVENT = 0,
-	DRAGGING = false,
-	DRAGEVENT = 0,
-	
-	-- callbacks
-	INSIDECALL = function() return self.__mouseinfo.INSIDE end,
-	ONCLICK = function() return self.__mouseinfo.CLICK end,
-	ONDRAG = function() return self.__mouseinfo.DRAGGING end,
-	ONEVENT = function(e) return self.__mouseinfo.EVENT == e end,
-	
-}
-	
-function Display.New()
-	return setmetatable({}, Display)
-end
-
-function Display:SetDragEvent(eventid)
-	self__mouseinfo.DRAGEVENT = eventid,
-end
-
-function Display:SetMouseInput(e)
-	self.__mouseinfo.INSIDE = e.elementid == self._id
-	self.__mouseinfo.POSX = $cursor.x
-	self.__mouseinfo.POSY = $cursor.y
-	self.__mouseinfo.CLICK = e.elementid == self._id and (e.type == LMOUSE_UP or e.type == LMOUSE_DOWN or e.type == RMOUSE_UP or e.type == RMOUSE_DOWN or e.type == MMOUSE_UP or e.type == MMOUSE_DOWN)
-	self.__mouseinfo.EVENT = e.type
-	self.__mouseinfo.DRAGGING = e.type == self.__mouseinfo.DRAGEVENT
-end
-
-function Display:SetEventCallbacks(onEnter, onClick, onDrag, onEvent)
-	self.__mouseinfo.INSIDECALL = onEnter
-	self.__mouseinfo.ONCLICK = onClick
-	self.__mouseinfo.ONDRAG = onDrag
-	self.__mouseinfo.ONEVENT = onEvent
-end
 
 -- FIXES AND GENERAL EXTENSIONS
 
@@ -991,10 +943,10 @@ end
 unequip = unequip or unequipitem
 antifurniture = antifurniture or antifurnituretrap
 
---enables advanced cooldown control for cancast
+-- enables advanced cooldown control in cancast
 function cast(...)
 	local args = {...}
-	local info = SPELLINFO_OBJECT:find(type(args[1])) ~= nil and args[1] or spellinfo(args[1])
+	local info = ("userdata|table"):find(type(args[1])) ~= nil and args[1] or spellinfo(args[1])
 	LIB_CACHE.cancast[info.name:lower()] = $timems + info.duration
 
 	return __FUNCTIONS.CAST(...)
