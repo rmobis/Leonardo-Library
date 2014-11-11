@@ -2,10 +2,10 @@
 	Leonardo's Library
 	Created: 15/01/2014
 	Version: 1.5.0 beta
-	Updated: 10/11/2014
-	
+	Updated: 11/11/2014
+
 	Last Changelog:
-	
+
 	Added botversion: returns a number variation of the already existent $botversion which returns string
 	Added table.search: a new table.find which allow advanced searching methods for different value types
 	Added drawvector: a hud function to draw a vector between a/b-x/y axis
@@ -144,7 +144,7 @@ end
 
 function botversion(n)
 	n = n or $botversion
-	
+
 	return (tonumber(n:sub(1,1)) * 100) + (tonumber(n:sub(3,3)) * 10) + tonumber(n:sub(5,5))
 end
 BOT_VERSION = botversion()
@@ -170,13 +170,13 @@ function table.search(self, value, argument, ...)
 	local typeArg = type(argument)
 	local val1, val2
 	local args = {...}
-	
+
 	if typeVal == 'string' then
 		if typeArg == 'boolean' then
 			table.insert(args, 1, argument)
 			argument = nil
 		end
-		
+
 		-- string options
 		-- disconsider case, partial match
 		val1, val2 = unpack(args)
@@ -185,7 +185,7 @@ function table.search(self, value, argument, ...)
 			table.insert(args, 1, argument)
 			argument = nil
 		end
-		
+
 		-- number options
 		-- between min, between max
 		val1, val2 = unpack(args)
@@ -194,17 +194,17 @@ function table.search(self, value, argument, ...)
 			table.insert(args, 1, argument)
 			argument = nil
 		end
-		
+
 		-- bool options
 		-- convert values to bool
 		val1 = args[1]
 	end
-	
+
 	for k, v in pairs(self) do
 		if typeVal == 'string' and type(k[argument] or v) == 'string' then
 			local str1, str2, str3 = v:lower(), value:lower(), (argument ~= nil and k[argument] or ''):lower()
-				
-			if v == value or argument and k[argument] == value or (val1 and (str1 == str2 or (argument and str1 == str3))) or (val2 and (str1:find(str2) or str2:find(str1) or (argument and (str1:find(str3) or str3:find(str1)))) then
+
+			if v == value or argument and k[argument] == value or (val1 and (str1 == str2 or (argument and str1 == str3))) or (val2 and (str1:find(str2) or str2:find(str1) or (argument and (str1:find(str3) or str3:find(str1))))) then
 				return k
 			end
 		elseif typeVal == 'number' and type(k[argument] or v) == 'number' then
@@ -217,7 +217,7 @@ function table.search(self, value, argument, ...)
 			end
 		end
 	end
-	
+
 	return nil
 end
 
@@ -228,9 +228,9 @@ function table.tostring(self, name, sep)
 	elseif not (name or sep) then
 		sep = ' '
 	end
-	
+
 	local str = ''
-	
+
 	for k, v in pairs(self) do
 		local t, n = type(v), type(k)
 
@@ -246,17 +246,17 @@ function table.tostring(self, name, sep)
 			str = str .. sprintf("%s, %s", (n == 'number' and userdatastringformat(v)) or sprintf('%s = %s', k, userdatastringformat(v)), sep)
 		end
 	end
-	
+
 	return sprintf("%s{%s}", name and sprintf('%s = ', name) or '', str:sub(1, -(2 + #sep)))
 end
 
 function tosec(str)
 	local sum, time, units, index = 0, str:token(nil, ":"), {86400, 3600, 60, 1}, 1
-	
+
 	for i = #units - #time + 1, #units do
 		sum, index = sum + ((tonumber(time[index]) or 0) * units[i]), index + 1
 	end
-	
+
 	return math.max(sum, 0)
 end
 
@@ -333,7 +333,7 @@ end
 
 function setareapolicy(name, policy)
 	local polType = type(policy)
-	
+
 	if polType == 'string' and not table.find({"cavebot", "cavebot & targeting", "targeting", "none"}, policy:lower()) then
 		policy = "None"
 	elseif polType == 'number' and policy > 0 and policy <= 3 then
@@ -436,7 +436,7 @@ end
 function isbinded(...)
 	if not $fasthotkeys then
 		local temp, i, arg, info = {}, 1, {...}
-	
+
 		while arg[i] do
 			if type(arg[i]) == 'table' then
 				info = spellinfo(arg[i][1])
@@ -445,21 +445,21 @@ function isbinded(...)
 				info = spellinfo(arg[i])
 				temp[i] = {key = arg[i], type = #info.words > 0 and info.itemid == 0, force = "all"}
 			end
-			
+
 			i = i + 1
 		end
-	
+
 		for _, entry in ipairs(temp) do
 			local func, params = clientitemhotkey, {"self", "target", "crosshair"}
-	
+
 			if entry.type then
 				func, params = clienttexthotkey, {"automatic", "manual"}
 			end
-	
+
 			if entry.force and not table.find(params, entry.force:lower()) then
 				entry.force = 'all'
 			end
-	
+
 			if func(entry.key, entry.force) == 'not found' then
 				return false
 			end
@@ -825,7 +825,7 @@ function withdrawitems(where, to, ...)
 	local waitFunc = function()
 		return waitping(1.5, 2)
 	end
-	
+
 	if tempType == 'string' then
 		where = where:lower()
 
@@ -857,7 +857,7 @@ function withdrawitems(where, to, ...)
 			-- used input a invalid container and invalid index
 			return false
 		end
-		
+
 		to = getlootingdestination(to) or itemname(to)
 	elseif tempType == 'userdata' and to.objtype == 'container' then
 		-- used input a container object, we only want the name
@@ -933,8 +933,8 @@ function screentiles(sortf, area, func)
 	end
 end
 
-function drawvector(x1, y1, x2, y2) -- by Lucas Terra
-	return drawline(x1, y1, math.abs(x2-x1), math.abs(y2-y1))
+function drawvector(x1, y1, x2, y2) -- By Lucas Terra
+	drawline(x1, y1, x2-x1, y2-y1)
 end
 
 -- FIXES AND GENERAL EXTENSIONS
