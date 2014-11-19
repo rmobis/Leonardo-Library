@@ -1,8 +1,8 @@
 --[[
 	Leonardo's Library
 	Created: 15/01/2014
-	Version: 1.5.0 beta
-	Updated: 12/11/2014
+	Version: 1.5.0
+	Updated: 19/11/2014
 
 	Last Changelog:
 
@@ -10,13 +10,15 @@
 	Added table.search: a new table.find which allow advanced searching methods for different value types
 	Added drawvector: a hud function to draw a vector between (a/b) <-> (x/y) axis
 	Added randomcolor: a randomizer for any color, gradient or not based in HSB with some other cool options
+	
+	Fixed rusty items list (missing id: '8894')
 --]]
 
 
 -- GLOBALS AND LOCAL VARIABLES
 
 LIBS = LIBS or {}
-LIBS.LEONARDO = "1.5.0b"
+LIBS.LEONARDO = "1.5.0"
 
 POLICY_NONE = 'None'
 POLICY_CAVEBOT = 'Cavebot'
@@ -83,16 +85,8 @@ local defaultColors = {
 	['orange'] = {16, 43},
 	['pink'] = {300, 336},
 	['cyan'] = {168, 187},
-	['monochrome'] = {},
+	['monochrome'] = 1,
 }
-
-ORDER_RADIAL = function(a, b) return getdistancebetween(a, {$posx, $posy, $posz}) < getdistancebetween(b, {$posx, $posy, $posz}) end
-ORDER_RADIAL_REVERSE = function(a, b) return ORDER_RADIAL(b, a) end
-ORDER_EUCLIDEAN = function(a, b) return math.sqrt(math.abs(a[1] - $posx)^2 + math.abs(a[2] - $posy)^2) > math.sqrt(math.abs(b[1] - $posx)^2 + math.abs(b[2] - $posy)^2) end
-ORDER_EUCLIDEAN_REVERSE = function(a, b) return ORDER_EUCLIDEAN(b, a) end
-ORDER_REALDIST = function(a, b) return math.abs((a[1] - $posx) + (a[2] - $posy)) > math.abs((b[1] - $posx) + (b[2] - $posy)) end
-ORDER_REALDIST_REVERSE = function(a, b) return ORDER_REALDIST(b, a) end
-ORDER_RANDOM = function(a, b) return (a[1] * a[2] * a[3]) % LIB_CACHE.screentiles < (b[1] * b[2] * b[3]) % LIB_CACHE.screentiles end
 
 -- LOCAL FUNCTIONS
 
@@ -103,6 +97,14 @@ LIB_CACHE = LIB_CACHE or {
 	isontemple = false,
 	screentiles = math.random(10^2, 10^4)
 }
+
+ORDER_RADIAL = function(a, b) return getdistancebetween(a, {$posx, $posy, $posz}) < getdistancebetween(b, {$posx, $posy, $posz}) end
+ORDER_RADIAL_REVERSE = function(a, b) return ORDER_RADIAL(b, a) end
+ORDER_EUCLIDEAN = function(a, b) return math.sqrt(math.abs(a[1] - $posx)^2 + math.abs(a[2] - $posy)^2) > math.sqrt(math.abs(b[1] - $posx)^2 + math.abs(b[2] - $posy)^2) end
+ORDER_EUCLIDEAN_REVERSE = function(a, b) return ORDER_EUCLIDEAN(b, a) end
+ORDER_REALDIST = function(a, b) return math.abs((a[1] - $posx) + (a[2] - $posy)) > math.abs((b[1] - $posx) + (b[2] - $posy)) end
+ORDER_REALDIST_REVERSE = function(a, b) return ORDER_REALDIST(b, a) end
+ORDER_RANDOM = function(a, b) return (a[1] * a[2] * a[3]) % LIB_CACHE.screentiles < (b[1] * b[2] * b[3]) % LIB_CACHE.screentiles end
 
 local __FUNCTIONS = __FUNCTIONS or {
 	CAST = cast,
@@ -209,7 +211,7 @@ function table.search(self, value, argument, ...)
 		end
 
 		-- bool options
-		-- convert values to bool
+		-- convert values to bool, must have Raphael's lib
 		val1 = args[1]
 	end
 
@@ -601,7 +603,7 @@ function unrust(ignore, drop, value)
 		end
 	end
 
-	local RustyItems = IgnoreCommon and {8895, 8896, 8898, 8899} or {8895, 8896, 8897, 8898, 8899}
+	local RustyItems = IgnoreCommon and {8895, 8896, 8898, 8899} or {8894, 8895, 8896, 8897, 8898, 8899}
 
 	for _, Item in ipairs(RustyItems) do
 		if itemcount(Item) > 0 then
@@ -1044,6 +1046,9 @@ end
 -- extend aliases
 unequip = unequip or unequipitem
 antifurniture = antifurniture or antifurnituretrap
+-- this is actually the correct name, but ppl know as unequip since elfbot
+dequip = dequip or unequip
+dequipitem = dequipitem or dequip
 
 -- enables advanced cooldown control in cancast
 function cast(...)
