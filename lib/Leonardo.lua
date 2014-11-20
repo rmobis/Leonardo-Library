@@ -1,60 +1,28 @@
 --[[
 	Leonardo's Library
 	Created: 15/01/2014
-	Updated: 04/09/2014
-	Version: 1.4.6
+	Version: 1.5.0
+	Updated: 19/11/2014
 
-	--> Summary:
-		--> Globals and Local variables
-		--> Local functions
+	Last Changelog:
 
-		--> Extension Class
-			-- printf;
-			-- sprintf;
-			-- loadstringf;
-			-- printerrorf;
+	Added botversion: returns a number variation of the already existent $botversion which returns string
+	Added global variable BOT_VERSION, returns the version as a number
+	Added table.search: a new table.find which allow advanced searching methods for different value types
+	Added drawvector: a hud function to draw a vector between (a/b) <-> (x/y) axis
+	Added randomcolor: a randomizer for any color, gradient or not based in HSB with some other cool options
+	Added aliases for unequip (dequip and dequipitem)
+	
+	Fixed rusty items list (missing id: '8894')
+	Improved minor stuff in some functions
 
-		--> Main functions
-			--> formatnumber;
-			--> formattime;
-			--> getareaposition;
-			--> setareaposition;
-			--> getareasize;
-			--> setareasize;
-			--> getareapolicy;
-			--> setareapolicy;
-			--> getareaavoidance;
-			--> setareaavoidance;
-			--> getareaextrapolicy;
-			--> setareaextrapolicy;
-			--> getareatype;
-			--> setareatype;
-			--> isbinded;
-			--> maroundfilter;
-			--> maroundfilterignore;
-			--> paroundfilter;
-			--> paroundfilterignore;
-			--> unrust;
-			--> antifurnituretrap;
-			--> isabletocast;
-			--> cancast;
-			--> unequipitem;
-			--> isontemple;
-			--> withdrawitems;
-			--> screentiles;
+--]]
 
-		--> Fixes and Function Extensions
-			-- antifurniture;
-			-- unequip;
-			-- cast;
-		<--
-	<--
-]]--
 
 -- GLOBALS AND LOCAL VARIABLES
 
 LIBS = LIBS or {}
-LIBS.LEONARDO = "1.4.6"
+LIBS.LEONARDO = "1.5.0"
 
 POLICY_NONE = 'None'
 POLICY_CAVEBOT = 'Cavebot'
@@ -69,23 +37,23 @@ local SA_POLICY = {POLICY_CAVEBOT, POLICY_TARGETING, POLICY_ALL}
 local SA_TYPE = {AREA_SQUARE_FILLED, AREA_SQUARE_BORDER, AREA_SQUARE_DOUBLE_BORDER}
 
 local slotNames = {
-	["amulet"]	= function() return {name = 'neck',	obj = $neck}	end,
-	["neck"]	= function() return {name = 'neck',	obj = $neck}	end,
-	["weapon"]	= function() return {name = 'rhand',	obj = $rhand}	end,
-	["rhand"]	= function() return {name = 'rhand',	obj = $rhand}	end,
-	["shield"]	= function() return {name = 'lhand',	obj = $lhand}	end,
-	["lhand"]	= function() return {name = 'lhand',	obj = $lhand}	end,
-	["ring"]	= function() return {name = 'finger',	obj = $finger}	end,
-	["finger"]	= function() return {name = 'finger',	obj = $finger}	end,
-	["armor"]	= function() return {name = 'chest',	obj = $chest}	end,
-	["chest"]	= function() return {name = 'chest',	obj = $chest}	end,
-	["boots"]	= function() return {name = 'feet',	obj = $feet}	end,
-	["feet"]	= function() return {name = 'feet',	obj = $feet}	end,
-	["ammo"]	= function() return {name = 'belt',	obj = $belt}	end,
-	["belt"]	= function() return {name = 'belt',	obj = $belt}	end,
-	["helmet"]	= function() return {name = 'head',	obj = $head}	end,
-	["head"]	= function() return {name = 'head',	obj = $head}	end,
-	["legs"]	= function() return {name = 'legs',	obj = $legs}	end,
+	["amulet"] = function() return {name = 'neck', obj = $neck} end,
+	["neck"] = function() return {name = 'neck', obj = $neck} end,
+	["weapon"] = function() return {name = 'rhand', obj = $rhand} end,
+	["rhand"] = function() return {name = 'rhand', obj = $rhand} end,
+	["shield"] = function() return {name = 'lhand', obj = $lhand} end,
+	["lhand"] = function() return {name = 'lhand', obj = $lhand} end,
+	["ring"] = function() return {name = 'finger', obj = $finger} end,
+	["finger"] = function() return {name = 'finger', obj = $finger} end,
+	["armor"] = function() return {name = 'chest', obj = $chest} end,
+	["chest"] = function() return {name = 'chest', obj = $chest} end,
+	["boots"] = function() return {name = 'feet', obj = $feet} end,
+	["feet"] = function() return {name = 'feet', obj = $feet} end,
+	["ammo"] = function() return {name = 'belt', obj = $belt} end,
+	["belt"] = function() return {name = 'belt', obj = $belt} end,
+	["helmet"] = function() return {name = 'head', obj = $head} end,
+	["head"] = function() return {name = 'head', obj = $head} end,
+	["legs"] = function() return {name = 'legs', obj = $legs} end,
 }
 
 local cityTemples = {
@@ -112,6 +80,18 @@ local cityTemples = {
 	{33586, 33602, 31896, 31903, 6}, -- oramond
 }
 
+local defaultColors = {
+	['red'] = {0, 16},
+	['yellow'] = {47, 55},
+	['blue'] = {180, 225},
+	['green'] = {63, 179},
+	['purple'] = {240, 280},
+	['orange'] = {16, 43},
+	['pink'] = {300, 336},
+	['cyan'] = {168, 187},
+	['monochrome'] = 1,
+}
+
 -- LOCAL FUNCTIONS
 
 LIB_CACHE = LIB_CACHE or {
@@ -121,6 +101,14 @@ LIB_CACHE = LIB_CACHE or {
 	isontemple = false,
 	screentiles = math.random(10^2, 10^4)
 }
+
+ORDER_RADIAL = function(a, b) return getdistancebetween(a, {$posx, $posy, $posz}) < getdistancebetween(b, {$posx, $posy, $posz}) end
+ORDER_RADIAL_REVERSE = function(a, b) return ORDER_RADIAL(b, a) end
+ORDER_EUCLIDEAN = function(a, b) return math.sqrt(math.abs(a[1] - $posx)^2 + math.abs(a[2] - $posy)^2) > math.sqrt(math.abs(b[1] - $posx)^2 + math.abs(b[2] - $posy)^2) end
+ORDER_EUCLIDEAN_REVERSE = function(a, b) return ORDER_EUCLIDEAN(b, a) end
+ORDER_REALDIST = function(a, b) return math.abs((a[1] - $posx) + (a[2] - $posy)) > math.abs((b[1] - $posx) + (b[2] - $posy)) end
+ORDER_REALDIST_REVERSE = function(a, b) return ORDER_REALDIST(b, a) end
+ORDER_RANDOM = function(a, b) return (a[1] * a[2] * a[3]) % LIB_CACHE.screentiles < (b[1] * b[2] * b[3]) % LIB_CACHE.screentiles end
 
 local __FUNCTIONS = __FUNCTIONS or {
 	CAST = cast,
@@ -173,6 +161,13 @@ end
 
 -- EXTENSION CLASS
 
+function botversion(n)
+	n = n or $botversion
+
+	return (tonumber(n:sub(1,1)) * 100) + (tonumber(n:sub(3,3)) * 10) + tonumber(n:sub(5,5))
+end
+BOT_VERSION = botversion()
+
 function printf(str, ...)
 	return print(sprintf(str, ...))
 end
@@ -187,6 +182,62 @@ end
 
 function printerrorf(str, ...)
 	return printerror(sprintf(str, ...))
+end
+
+function table.search(self, value, argument, ...)
+	local typeVal = type(value)
+	local typeArg = type(argument)
+	local val1, val2
+	local args = {...}
+
+	if typeVal == 'string' then
+		if typeArg == 'boolean' then
+			table.insert(args, 1, argument)
+			argument = nil
+		end
+
+		-- string options
+		-- disconsider case, partial match
+		val1, val2 = unpack(args)
+	elseif typeVal == 'number' then
+		if typeArg == 'number' and #args == 1 then
+			table.insert(args, 1, argument)
+			argument = nil
+		end
+
+		-- number options
+		-- between min, between max
+		val1, val2 = unpack(args)
+	elseif typeVal == 'boolean' then
+		if typeArg == 'boolean' then
+			table.insert(args, 1, argument)
+			argument = nil
+		end
+
+		-- bool options
+		-- convert values to bool, must have Raphael's lib
+		val1 = args[1]
+	end
+
+	for k, v in pairs(self) do
+		if typeVal == 'string' and type(k[argument] or v) == 'string' then
+			local str1, str2, str3 = v:lower(), value:lower(), (argument ~= nil and k[argument] or ''):lower()
+
+			if v == value or argument and k[argument] == value or (val1 and (str1 == str2 or (argument and str1 == str3))) or (val2 and (str1:find(str2) or str2:find(str1) or (argument and (str1:find(str3) or str3:find(str1))))) then
+				return k
+			end
+		elseif typeVal == 'number' and type(k[argument] or v) == 'number' then
+			if v == value or argument and k[argument] == value or (val1 and val2 and (v < val2 and v > val1 or argument and k[argument] < val2 and k[argument] > val1)) then
+				return k
+			end
+		elseif typeVal == 'boolean' and type(k[argument] or v) == 'boolean' then
+			if v == value or argument and k[argument] == value or (val1 and tobool(argument and k[argument] or v)) then
+				return k
+			end
+		end
+	end
+
+	return nil
 end
 
 function table.tostring(self, name, sep)
@@ -218,30 +269,17 @@ function table.tostring(self, name, sep)
 	return sprintf("%s{%s}", name and sprintf('%s = ', name) or '', str:sub(1, -(2 + #sep)))
 end
 
--- MAIN FUNCTIONS
-
--- @name	tosec
--- @desc	Converts a time formatted string into seconds.
--- @param	{string}	str	The string to convert
--- @returns	{number}
-
-function tosec(str) -- Working, by sirmate
+function tosec(str)
 	local sum, time, units, index = 0, str:token(nil, ":"), {86400, 3600, 60, 1}, 1
-	
+
 	for i = #units - #time + 1, #units do
 		sum, index = sum + ((tonumber(time[index]) or 0) * units[i]), index + 1
 	end
-	
+
 	return math.max(sum, 0)
 end
 
--- @name	formatnumber
--- @desc	Formats a number to show its units.
--- @param	{number}	num	The number to be formatted.
--- @param	{string}	sep	The symbol to separate numbers, default is ",". (optional)
--- @returns	{string}
-
-function formatnumber(n, s) -- Working, by sirmate
+function formatnumber(n, s)
 	local result, sign, before, after, s = '', string.match(tostring(n), '^([%+%-]?)(%d*)(%.?.*)$'), s or ','
 
 	while #before > 3 do
@@ -252,13 +290,7 @@ function formatnumber(n, s) -- Working, by sirmate
 	return sign .. before .. result .. after
 end
 
--- @name	formattime
--- @desc	Converts seconds to a time format string.
--- @param	{number}	num	The number to be converted
--- @param	{string}	pattern	The pattern to format number, default is "DD:HH:MM:SS". (optional)
--- @returns	{string}
-
-function formattime(n, pattern) -- Working, by sirmate
+function formattime(n, pattern)
 	local units = {DD = math.floor(n / 86400 % 7), HH = math.floor(n / 3600 % 24), MM = math.floor(n / 60 % 60), SS = math.floor(n % 60)}
 
 	if not pattern then
@@ -276,12 +308,7 @@ function formattime(n, pattern) -- Working, by sirmate
 	return pattern:gsub("%u%u", function(str) return string.format("%02d", units[str]) end)
 end
 
--- @name	getareaposition
--- @desc	Returns the coordinates of the given special area.
--- @param  	{string}	name	The special area name to check.
--- @returns	{table}
-
-function getareaposition(name) -- working
+function getareaposition(name)
 	local setting = getareasetting(name, 'Coordinates')
 
 	if setting then
@@ -293,26 +320,13 @@ function getareaposition(name) -- working
 	return {x = 0, y = 0, z = 0}
 end
 
--- @name	setareaposition
--- @desc	Sets the special area initial position.
--- @param	{string}	name	The special area name.
--- @param	{number}	x	The special area x coordinate. (optional)
--- @param	{number}	y	The special area y coordinate. (optional)
--- @param	{number}	z	The special area z coordinate. (optional)
--- @returns	{void}
-
-function setareaposition(name, x, y, z) -- Working
+function setareaposition(name, x, y, z)
 	x, y, z = tonumber(x) or $posx, tonumber(y) or $posy, tonumber(z) or $posz
 
 	return setareasetting(name, 'Coordinates', sprintf("x:%s, y:%s, z:%s", x, y, z))
 end
 
--- @name	getareasize
--- @desc	Returns the special area width and height.
--- @param	{string}	name	The special area name.
--- @returns	{table}
-
-function getareasize(name) -- working
+function getareasize(name)
 	local setting = getareasetting(name, 'Size')
 
 	if setting then
@@ -324,40 +338,24 @@ function getareasize(name) -- working
 	return {w = 0, h = o}
 end
 
--- @name	setareasize
--- @desc	Sets the width and height for a special area.
--- @param	{string}	name	The special area name.
--- @param	{number}	width	The width lenght. (optional)
--- @param	{number}	height	The height lenght. (optional)
--- @returns	{void}
-
-function setareasize(name, w, h) -- working
+function setareasize(name, w, h)
 	h, w = tonumber(h) or 1, tonumber(w) or 1
 
 	return setareasetting(name, 'Size', sprintf('%d to %d', w, h))
 end
 
--- @name	getareapolicy
--- @desc	Returns the policy of a special area.
--- @param	{string}	name	The special area name.
--- @returns	{string}
-
-function getareapolicy(name) -- working
+function getareapolicy(name)
 	local setting = getareasetting(name, 'Policy')
 
 	return setting or POLICY_NONE
 end
 
--- @name	setareapolicy
--- @desc	Sets the policy of a special area.
--- @param  	{string}	name	The special area name.
--- @param  	{string}	policy  The policy to setsetting. 'Cavebot', 'Targeting', 'Cavebot & Targeting' or 'None'. (optional)
--- @returns	{void}
+function setareapolicy(name, policy)
+	local polType = type(policy)
 
-function setareapolicy(name, policy) -- working
-	if type(policy) == 'string' and not table.find({"cavebot", "cavebot & targeting", "targeting", "none"}, policy:lower()) then
+	if polType == 'string' and not table.find({"cavebot", "cavebot & targeting", "targeting", "none"}, policy:lower()) then
 		policy = "None"
-	elseif type(policy) == 'number' and policy > 0 and policy <= 3 then
+	elseif polType == 'number' and policy > 0 and policy <= 3 then
 		policy = SA_POLICY[policy]
 	else
 		policy = "None"
@@ -366,34 +364,17 @@ function setareapolicy(name, policy) -- working
 	return setareasetting(name, 'Policy', policy)
 end
 
--- @name	getareaavoidance
--- @desc	Returns the avoidance of a special area.
--- @param	{string}	name	The special area name.
--- @returns	{number}
-
-function getareaavoidance(name) -- working
+function getareaavoidance(name)
 	local setting = getareasetting(name, 'Avoidance')
 
 	return tonumber(setting) or 0
 end
 
--- @name	setareaavoidance
--- @desc	Sets the avoidance for a special area.
--- @param	{string}	name		The special area name.
--- @param	{number}	avoidanc	The avoidance level. Minimum of 0 and maximum of 250. (optional)
--- @returns	{number}
-
-function setareaavoidance(name, avoid) -- working
+function setareaavoidance(name, avoid)
 	avoid = tonumber(avoid) or 0
 
 	return setareasetting(name, 'Avoidance', avoid)
 end
-
--- @name	getareaextrapolicy
--- @desc	Returns true if the extra policy given is enabled, false otherwise.
--- @param	{string}	name	The special area name.
--- @param	{string}	type	The extra policy type as 'loot', 'lure', 'looting' or 'luring'.
--- @returns	{boolean}
 
 function getareaextrapolicy(name, poltype)
 	local t = type(poltype)
@@ -416,13 +397,6 @@ function getareaextrapolicy(name, poltype)
 	return setting ~= nil and setting == 'yes'
 end
 
--- @name	setareaextrapolicy
--- @desc	Sets the extra policy for a special area.
--- @param	{string}	name		The special area name.
--- @param	{mixed}		poltype	 The policy type as 'loot', 'lure', 'looting' or 'luring'.
--- @param	{mixed}		toggle	  The value to turn option on or off as any true value or false value.
--- @returns	{void}
-
 function setareaextrapolicy(name, poltype, t)
 	local typ = type(poltype)
 	poltype = typ == 'string' and poltype:lower() or false
@@ -442,21 +416,9 @@ function setareaextrapolicy(name, poltype, t)
 	return setareasetting(name, poltype, t)
 end
 
--- @name	setareatype
--- @desc	Sets the type of a special area.
--- @param	{string}	name	The special area name.
--- @param	{mixed}		type	The area type as 'filled' or 'border', 1 for filled or 2 for border.
--- @returns	{void}
-
 function getareatype(name)
 	return getareasetting(name, 'Type') or 'None'
 end
-
--- @name	setareatype
--- @desc				Sets the type of a special area.
--- @param   {string}	name	 The special area name.
--- @param   {various}   type	 The area type as 'filled' or 'border', 1 for filled or 2 for border.
--- @returns {null}
 
 function setareatype(name, areatype)
 	local t = type(areatype)
@@ -469,7 +431,7 @@ function setareatype(name, areatype)
 		elseif areatype:match('border') then
 			areatype = AREA_SQUARE_BORDER
 		elseif areatype:match('double') then
-			areatype = AREA_SQUARE_DBORDER
+			areatype = AREA_SQUARE_DOUBLE_BORDER
 		else
 			return printerrorf("bad argument #2 to 'setareatype' ('Filled', 'Border', 'Double', 'Square (Filled)', 'Square (Border Only)' or 'Square (Double Border)' expected, got %s)", areatype)
 		end
@@ -482,34 +444,18 @@ function setareatype(name, areatype)
 	return setareasetting(name, 'Type', areatype)
 end
 
--- @name	getareacomment
--- @desc	Returns the comment of the special area given.
--- @param	{string}	name	The special area name.
--- @returns	{string}
-
 function getareacomment(name)
 	return getareasetting(name, 'Comment') or ''
 end
-
--- @name	setareacomment
--- @desc	Sets the comment of the special area given.
--- @param	{string}	name	The special area name.
--- @param	{string}	comment	The special area comment.
--- @returns	{void}
 
 function setareacomment(name, comment)
 	return setareasetting(name, 'Comment', comment or '')
 end
 
--- @name	isbinded
--- @desc	Check if you have the current hotkeys binded on functions keyboard.
--- @param	{array}		list	The list of the hotkeys to check.
--- @returns	{boolean}
-
-function isbinded(...) -- working
-	local temp, i, arg, info = {}, 1, {...}
-	
+function isbinded(...)
 	if not $fasthotkeys then
+		local temp, i, arg, info = {}, 1, {...}
+
 		while arg[i] do
 			if type(arg[i]) == 'table' then
 				info = spellinfo(arg[i][1])
@@ -518,21 +464,21 @@ function isbinded(...) -- working
 				info = spellinfo(arg[i])
 				temp[i] = {key = arg[i], type = #info.words > 0 and info.itemid == 0, force = "all"}
 			end
-			
+
 			i = i + 1
 		end
-	
+
 		for _, entry in ipairs(temp) do
 			local func, params = clientitemhotkey, {"self", "target", "crosshair"}
-	
+
 			if entry.type then
 				func, params = clienttexthotkey, {"automatic", "manual"}
 			end
-	
+
 			if entry.force and not table.find(params, entry.force:lower()) then
 				entry.force = 'all'
 			end
-	
+
 			if func(entry.key, entry.force) == 'not found' then
 				return false
 			end
@@ -542,15 +488,7 @@ function isbinded(...) -- working
 	return true
 end
 
--- @name	maroundfilter
--- @desc	Returns the amount of monsters found in the range distance. Optionally you can add a function to filter those creatures.
--- @param	{number}	range	The minimum distance range. (optional)
--- @param	{boolean}	floor	Set true to consider all floors or false to consider on the current floor. (optional)
--- @param	{array}		list	The creature names list to disconsider. (optional)
--- @param	{function}	func	The filter function. (optional)
--- @returns	{number}
-
-function maroundfilter(range, floor, ...) -- Working
+function maroundfilter(range, floor, ...)
 	local Creatures, Callback = {...}, function(c) return true end
 
 	if type(floor) == 'string' then
@@ -575,15 +513,7 @@ function maroundfilter(range, floor, ...) -- Working
 	return __crearoundf__callback(range, floor, Creatures, 'mx', false, Callback)
 end
 
--- @name	maroundfilterignore
--- @desc	Returns the amount of monsters found in the range distance, excluding the creatures names found in the list. Optionally you can add a function to filter those creatures.
--- @param	{number}	range	The minimum distance range. (optional)
--- @param	{boolean}	floor	Set true to consider all floors or false to consider on the current floor. (optional)
--- @param	{array}		list	The creature names list to disconsider. (optional)
--- @param	{function}	func	The filter function. (optional)
--- @returns	{number}
-
-function maroundfilterignore(range, floor, ...) -- Working
+function maroundfilterignore(range, floor, ...)
 	local Creatures, Callback = {...}, function(c) return true end
 
 	if type(floor) == 'string' then
@@ -608,15 +538,7 @@ function maroundfilterignore(range, floor, ...) -- Working
 	return __crearoundf__callback(range, floor, Creatures, 'mx', true, Callback)
 end
 
--- @name	paroundfilter
--- @desc	Returns the amount of players found in the range distance, excluding the creatures names found in the list. Optionally you can add a function to filter those creatures.
--- @param	{number}	range	The minimum distance range. (optional)
--- @param	{boolean}	floor	Set true to consider all floors or false to consider on the current floor. (optional)
--- @param	{array}		list	The creature names list to disconsider. (optional)
--- @param	{function}	func	The filter function. (optional)
--- @returns	{number}
-
-function paroundfilter(range, floor, ...) -- Working
+function paroundfilter(range, floor, ...)
 	local Creatures, Callback = {...}, function(c) return true end
 
 	if type(floor) == 'string' then
@@ -641,15 +563,7 @@ function paroundfilter(range, floor, ...) -- Working
 	return __crearoundf__callback(range, floor, Creatures, 'px', false, Callback)
 end
 
--- @name	paroundfilterignore
--- @desc	Returns the amount of players found in the range distance, excluding the creature names found in the list. Optionally you can add a function to filter those creatures.
--- @param	{number}	range	The minimum distance range. (optional)
--- @param	{boolean}	floor	Set true to consider all floors or false to consider on the current floor. (optional)
--- @param	{array}		list	The creature names list to disconsider. (optional)
--- @param	{function}	func	The filter function. (optional)
--- @returns	{number}
-
-function paroundfilterignore(range, floor, ...) -- Working
+function paroundfilterignore(range, floor, ...)
 	local Creatures, Callback = {...}, function(c) return true end
 
 	if type(floor) == 'string' then
@@ -674,14 +588,7 @@ function paroundfilterignore(range, floor, ...) -- Working
 	return __crearoundf__callback(range, floor, Creatures, 'px', true, Callback)
 end
 
--- @name	unrust
--- @desc	Uses rust remover on all the valid rust items found.
--- @param	{boolean}	ignore	Set true to ignore common rust items or false to consider this type. (optional)
--- @param	{boolean}	drop	Set true to drop trash items. (optional)
--- @param	{number}	value	Set the minimum value to consider items below this value as trash. (optional)
--- @returns	{void}
-
-function unrust(ignore, drop, value) -- Working
+function unrust(ignore, drop, value)
 	local IgnoreCommon = ignore or true
 	local DropTrash = drop or true
 	local MinValue = math.max(value or 0, 0)
@@ -700,7 +607,7 @@ function unrust(ignore, drop, value) -- Working
 		end
 	end
 
-	local RustyItems = IgnoreCommon and {8895, 8896, 8898, 8899} or {8895, 8896, 8897, 8898, 8899}
+	local RustyItems = IgnoreCommon and {8895, 8896, 8898, 8899} or {8894, 8895, 8896, 8897, 8898, 8899}
 
 	for _, Item in ipairs(RustyItems) do
 		if itemcount(Item) > 0 then
@@ -732,18 +639,12 @@ function unrust(ignore, drop, value) -- Working
 	end
 end
 
--- @name	antifurnituretrap
--- @desc	Breaks all the destructible items that block the path of your character.
--- @param	{various}	weapo	The weapon name or ID to use.
--- @param	{number}	stand	The maximum time in seconds to wait before start breaking items.
--- @returns	{number, string}
-
-function antifurnituretrap(weapon, stand) -- Working
+function antifurnituretrap(weapon, stand)
 	weapon = weapon or 'Machete'
 	stand = (stand or 0) * 1000
 
 	if clientitemhotkey(weapon, 'crosshair') == 'not found' and itemcount(weapon) == 0 then
-		return 1, "AntiFurniture[Issue1]: 'Weapon' given not found on hotkeys and not visible."
+		return "AntiFurniture[Issue1]: 'Weapon' given not found on hotkeys and not visible."
 	end
 
 	if $standtime > stand then
@@ -773,7 +674,7 @@ function antifurnituretrap(weapon, stand) -- Working
 				foreach newmessage m do
 					if m.content:match("You are not invited") then
 						LIB_CACHE.antifurniture[ground(x, y, z)] = true
-						return 4, "AntiFurniture[Issue4]: Cancelling routine due to an item inside a house. (top item)"
+						return "AntiFurniture[Issue4]: Cancelling routine due to an item inside a house. (top item)"
 					end
 				end
 
@@ -784,7 +685,7 @@ function antifurnituretrap(weapon, stand) -- Working
 						foreach newmessage m do
 							if m.content:match("You are not invited") then
 								LIB_CACHE.antifurniture[ground(x, y, z)] = true
-								return 4, "AntiFurniture[Issue4]: Cancelling routine due to an item inside a house. (top item)"
+								return "AntiFurniture[Issue4]: Cancelling routine due to an item inside a house. (top item)"
 							end
 						end
 					end
@@ -803,7 +704,7 @@ function antifurnituretrap(weapon, stand) -- Working
 									foreach newmessage m do
 										if m.content:match("You are not invited") then
 											LIB_CACHE.antifurniture[ground(x, y, z)] = true
-											return 3, "AntiFurniture[Issue3]: Cancelling routine due to an item inside a house. (browsing field)"
+											return "AntiFurniture[Issue3]: Cancelling routine due to an item inside a house. (browsing field)"
 										end
 									end
 								end
@@ -817,26 +718,16 @@ function antifurnituretrap(weapon, stand) -- Working
 				pausewalking(0)
 			end
 		else
-			return 5, "AntiFurniture[Issue5]: Character is standing still without furnitures to break."
+			return "AntiFurniture[Issue5]: Character is standing still without furnitures to break."
 		end
 	else
-		return 2, "AntiFurniture[Issue2]: Current standtime less than the required time."
+		return "AntiFurniture[Issue2]: Current standtime less than the required time."
 	end
 
-	return 0, "AntiFurniture[No Issue]"
+	return "AntiFurniture[No Issue]"
 end
 
--- @name	getdistancebetween
--- @desc	Returns the distance between positions given or -1 if it's not located on the same floor.
--- @param	{mixed		x	The x-axis position or the table with starting coordinates.
--- @param	{mixed		y	The y-axis position or the table with destiny coordinates.
--- @param	{number}	z	The z-axis position.
--- @param	{number}	a	The x-axis destiny position.
--- @param	{number}	b	The y-axis destiny position.
--- @param	{number}	c	The z-axis destiny position.
--- @returns	{number}
-
-function getdistancebetween(x, y, z, a, b, c) -- Working
+function getdistancebetween(x, y, z, a, b, c)
 	if type(x) == 'table' and type(y) == 'table' and not (z and a and b and c) then
 		if x.x and y.x then
 			x, y, z, a, b, c = x.x, x.y, x.z, y.x, y.y, y.z
@@ -850,25 +741,14 @@ function getdistancebetween(x, y, z, a, b, c) -- Working
 	return z == c and math.max(math.abs(x - a), math.abs(y - b)) or -1
 end
 
--- @name	isabletocast
--- @desc	Returns true if you are able to cast spell given.
--- @param	{mixed}		spel	The spell object, name or words.
--- @returns	{boolean}
-
-function isabletocast(spell) -- Working
-	spell = ('userdata|table'):find(type(spell)) ~= nil and spell or spellinfo(spell)
+function isabletocast(spell)
+	spell = ("userdata|table"):find(type(spell)) ~= nil and spell or spellinfo(spell)
 
 	return spell.cancast
 end
 
--- @name	cancast
--- @desc	Returns true if you are able to cast spell given and if the duration period for that spell has been depleted, optionally you can check if it's able to cast on to a creature.
--- @param	{mixed}		spell	The spell object, name or words.
--- @param	{mixed}		cre	The creature object, name or ID. (optional)
--- @returns	{boolean}
-
-function cancast(spell, cre) -- Working
-	spell = ('userdata|table'):find(type(spell)) ~= nil and spell or spellinfo(spell)
+function cancast(spell, cre)
+	spell = ("userdata|table"):find(type(spell)) ~= nil and spell or spellinfo(spell)
 
 	local cool, strike = LIB_CACHE.cancast[spell.name:lower()] or 0, false
 
@@ -883,14 +763,7 @@ function cancast(spell, cre) -- Working
 	return (not strike or isonspellarea(cre, strike, $self.dir)) and $timems >= cool and $level >= spell.level and $mp >= spell.mp and $soul >= spell.soul and cooldown(spell.words) == 0
 end
 
--- @name	unequipitem
--- @desc	Unequip an item located at the equipment slot given.
--- @param	{string}	slot	The equipment slot name.
--- @param	{string}	bp	The backpack to move item on. (optional)
--- @param	{number}	amount	The amount of items to move on. (optional)
--- @returns	{void}
-
-function unequipitem(slot, bp, amount) -- Working
+function unequipitem(slot, bp, amount)
 	slot = slotNames[slot:lower()]
 
 	if slot then
@@ -909,12 +782,7 @@ function unequipitem(slot, bp, amount) -- Working
 	end
 end
 
--- @name	isinsidearea
--- @desc	Returns true if you are located inside an area with the range coordinates given.
--- @param	{table}		list	The area(s) range(s) in the format: {minimum x, maximum x, minimum y, maximum y, z}.
--- @returns	{boolean}
-
-function isinsidearea(...) -- Working
+function isinsidearea(...)
 	local SpecialAreas = {...}
 
 	if #SpecialAreas == 1 and type(SpecialAreas[1][1]) == 'table' then
@@ -934,22 +802,11 @@ function isinsidearea(...) -- Working
 	return false
 end
 
--- @name	pvpworld
--- @desc	Returns true if you are in a player versus player world, false otherwise.
--- @returns	{boolean}
-
-function pvpworld() -- Working
+function pvpworld()
 	return table.find({"Astera", "Calmera", "Candia", "Celesta", "Fidera", "Guardia", "Harmonia", "Honera", "Luminera", "Magera", "Menera", "Nerana", "Olympa", "Pacera", "Refugia", "Secura", "Unitera"}, $worldname) == nil
 end
 
--- @name	checklocation
--- @desc	Checks if you are inside the waypoint location within the range given, if not goes to the label of section given, if section and label are not given, returns false or true if you are inside the location.
--- @param	{mixed}		dist	The area range distance or the statement to check like: checklocation(islocation(7)).
--- @param	{mixed}		label	The label name or ID to go. (optional)
--- @param	{string}	section	The label section name. (optional)
--- @returns	{boolean}
-
-function checklocation(dist, label, section) -- Working
+function checklocation(dist, label, section)
 	local t = type(dist)
 	dist = (t == 'number' and dist > 0) and dist or false
 
@@ -970,10 +827,6 @@ function checklocation(dist, label, section) -- Working
 	return true
 end
 
--- @name	isontemple
--- @desc	Returns true if you are inside a temple, false otherwise.
--- @returns	{boolean}
-
 function isontemple()
 	local temp = isinsidearea(cityTemples)
 
@@ -985,21 +838,13 @@ function isontemple()
 	end
 end
 
--- @name	withdrawitems
--- @desc	Withdraws items on your depot or inbox or any other container to the given containers.
--- @param	{string}	cont	The container where the items are located and will be moved.
--- @param	{string}	move	The container where the items will be moved. (optional)
--- @param	{array}		items	The array of items that must be moved could be name/ID or table {backpack, item[, amount]} or {backpack = 'backpack name', name = 'item name', amount = 100}.
--- @param	{function}	delay	The delay waiting function between movements. (Defaults to waitping(1.5, 2))
--- @returns	{boolean}
-
 function withdrawitems(where, to, ...)
 	local items = {...}
 	local tempType = type(where)
 	local waitFunc = function()
 		return waitping(1.5, 2)
 	end
-	
+
 	if tempType == 'string' then
 		where = where:lower()
 
@@ -1031,7 +876,7 @@ function withdrawitems(where, to, ...)
 			-- used input a invalid container and invalid index
 			return false
 		end
-		
+
 		to = getlootingdestination(to) or itemname(to)
 	elseif tempType == 'userdata' and to.objtype == 'container' then
 		-- used input a container object, we only want the name
@@ -1058,13 +903,6 @@ function withdrawitems(where, to, ...)
 
 	return true
 end
-
--- @name	screentiles
--- @desc	Returns the x/y/z axis of the screen in a order given modified by a given function.
--- @param	{function}	sortf	The sorting function to organize positions order. (optional)
--- @param	{mixed}		area	This could be a table with measurements for the axis of the area or a distance number of a radius area. (optional)
--- @param	{function}	mod	The modifier function, this function will receive as arguments the x/y/z parameters and return a value, the screentiles will return this value instead of the coordinates. (optional)
--- @returns	{integer, integer, integer or mixed}
 
 function screentiles(sortf, area, func)
 	local tempType, xs, ys, xe, ye, Positions, i = type(sortf), -7, -5, 7, 5, {}, 0
@@ -1096,10 +934,13 @@ function screentiles(sortf, area, func)
 		end
 	end
 
-	LIB_CACHE.screentiles = math.random(10^2, 10^4)
-
 	if sortf then
 		table.sort(Positions, sortf)
+
+		if sortf == ORDER_RANDOM then
+			-- little trick to get random values for ORDER_RANDOM every time it is used
+			LIB_CACHE.screentiles = math.random(10^2, 10^4)
+		end
 	end
 
 	return function()
@@ -1113,47 +954,113 @@ function screentiles(sortf, area, func)
 	end
 end
 
-function ORDER_RADIAL(a, b)
-	return getdistancebetween(a, {$posx, $posy, $posz}) < getdistancebetween(b, {$posx, $posy, $posz})
+function drawvector(x1, y1, x2, y2) -- By Lucas Terra
+	drawline(x1, y1, x2-x1, y2-y1)
 end
 
-function ORDER_RADIAL_REVERSE(a, b)
-	return ORDER_RADIAL(b, a)
-end
+function randomcolor(options)
+	local h, s, l = math.random(0, 360), math.random(0, 100) / 100, math.random(0, 100) / 100
+	local monochrome = false
 
-function ORDER_EUCLIDEAN(a, b)
-	return math.sqrt(math.abs(a[1] - $posx)^2 + math.abs(a[2] - $posy)^2) > math.sqrt(math.abs(b[1] - $posx)^2 + math.abs(b[2] - $posy)^2)
-end
+	if options.hue then
+		local hueType = type(options.hue)
 
-function ORDER_EUCLIDEAN_REVERSE(a, b)
-	return ORDER_EUCLIDEAN(b, a)
-end
+		if hueType == 'string' then
+			options.hue = options.hue:lower()
 
-function ORDER_REALDIST(a, b)
-	return math.abs((a[1] - $posx) + (a[2] - $posy)) > math.abs((b[1] - $posx) + (b[2] - $posy))
-end
+			if defaultColors[options.hue] then
+				if options.hue == 'monochrome' then
+					h, s, monochrome = 0, 0, true
+				else
+					h = math.random(defaultColors[options.hue][1], defaultColors[options.hue][2])
+				end
+			end
+		elseif hueType == 'number' and options.hue <= 360 and options.hue >= 0 then
+			h = options.hue
+		end
+	end
 
-function ORDER_REALDIST_REVERSE(a, b)
-	return ORDER_REALDIST(b, a)
-end
+	if (not monochrome) and options.saturation and options.saturation <= 100 and options.saturation >= 0 then
+		s = options.saturation / 100
+	end
 
-function ORDER_RANDOM(a, b)
-	return (a[1] * a[2] * a[3]) % LIB_CACHE.screentiles < (b[1] * b[2] * b[3]) % LIB_CACHE.screentiles
+	if options.brightness then
+		local brightnessType = type(options.brightness)
+
+		if brightnessType == 'string' then
+			options.brightness = options.brightness:lower()
+
+			if options.brightness == 'dark' then
+				l = math.random(0, 33) / 100
+			elseif options.brightness == 'light' then
+				l = math.random(67, 100) / 100
+			elseif options.brightness == 'medium' then
+				l = math.random(34, 66) / 100
+			end
+		elseif brightnessType == 'number' and options.brightness <= 100 and options.brightness >= 0 then
+			l = options.brightness / 100
+		end
+	end
+
+	if options.amount then
+		local tbl, opt = {}, table.copy(options)
+
+		opt.amount = nil
+
+		for i = 0, options.amount-1 do
+			if options.gradient then
+				table.insert(tbl, (i * 100 / options.amount) / 100)
+			end
+
+			table.insert(tbl, randomcolor(opt))
+		end
+
+		return unpack(tbl)
+	end
+
+	-- the code below was basically copied from here:
+	-- http://stackoverflow.com/questions/10393134/converting-hsl-to-rgb
+
+	h = h / 60
+	local chroma = (1 - math.abs(2 * l - 1)) * s
+	local x = (1 - math.abs(h % 2 - 1)) * chroma
+	local r, g, b = 0, 0, 0
+
+	if h < 1 then
+		r, g, b = chroma, x, 0
+	elseif h < 2 then
+		r, b, g = x, chroma, 0
+	elseif h < 3 then
+		r, g, b = 0, chroma, x
+	elseif h < 4 then
+		r, g, b = 0, x, chroma
+	elseif h < 5 then
+		r, g, b = x, 0, chroma
+	else
+		r, g, b = chroma, 0, x
+	end
+
+	local m = l - chroma / 2
+
+	return color((r + m) * 256, (g + m) * 256, (b + m) * 256, options.transparency)
 end
 
 -- FIXES AND GENERAL EXTENSIONS
 
--- extend function
+-- extend aliases
 unequip = unequip or unequipitem
 antifurniture = antifurniture or antifurnituretrap
---enables advanced cooldown control for cancast
+-- this is actually the correct name, but ppl know as unequip since elfbot
+dequip = dequip or unequip
+dequipitem = dequipitem or dequip
 
+-- enables advanced cooldown control in cancast
 function cast(...)
 	local args = {...}
-	local info = ('userdata|table'):find(type(args[1])) ~= nil and args[1] or spellinfo(args[1])
+	local info = ("userdata|table"):find(type(args[1])) ~= nil and args[1] or spellinfo(args[1])
 	LIB_CACHE.cancast[info.name:lower()] = $timems + info.duration
 
 	return __FUNCTIONS.CAST(...)
 end
 
-printf("Leonardo's library loaded, version: %s", LIBS.LEONARDO)
+printf("Leonardo\'s library loaded, version: %s", LIBS.LEONARDO)
