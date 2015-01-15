@@ -952,6 +952,7 @@ function drawvector(x1, y1, x2, y2) -- By Lucas Terra
 end
 
 function randomcolor(options)
+	options = options or {}
 	local h, s, l = math.random(0, 360), math.random(0, 100) / 100, math.random(0, 100) / 100
 	local monochrome = false
 
