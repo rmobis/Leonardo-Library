@@ -1,20 +1,13 @@
 --[[
 	Leonardo's Library
 	Created: 15/01/2014
-	Version: 1.5.0
-	Updated: 19/11/2014
+	Version: 1.5.1
+	Updated: 15/01/2015
 
 	Last Changelog:
 
-	Added botversion: returns a number variation of the already existent $botversion which returns string
-	Added global variable BOT_VERSION, returns the version as a number
-	Added table.search: a new table.find which allow advanced searching methods for different value types
-	Added drawvector: a hud function to draw a vector between (a/b) <-> (x/y) axis
-	Added randomcolor: a randomizer for any color, gradient or not based in HSB with some other cool options
-	Added aliases for unequip (dequip and dequipitem)
-	
-	Fixed rusty items list (missing id: '8894')
-	Improved minor stuff in some functions
+	Added rashidlocation
+	Fixed randomcolor parameter, now is optional
 
 --]]
 
@@ -22,7 +15,7 @@
 -- GLOBALS AND LOCAL VARIABLES
 
 LIBS = LIBS or {}
-LIBS.LEONARDO = "1.5.0"
+LIBS.LEONARDO = "1.5.1"
 
 POLICY_NONE = 'None'
 POLICY_CAVEBOT = 'Cavebot'
@@ -1043,6 +1036,12 @@ function randomcolor(options)
 	local m = l - chroma / 2
 
 	return color((r + m) * 256, (g + m) * 256, (b + m) * 256, options.transparency)
+end
+
+function rashidlocation()
+	local weekday = os.date("%w", os.time()-(86400-sstime()))
+
+	return ({"Carlin", "Svargrond", "Liberty Bay", "Port Hope", "Ankrahmun", "Darashia", "Edron"})[weekday % 7 + 1]
 end
 
 -- FIXES AND GENERAL EXTENSIONS
