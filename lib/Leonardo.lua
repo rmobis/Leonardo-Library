@@ -1,14 +1,14 @@
 --[[
+
 	Leonardo's Library
 	Created: 15/01/2014
-	Version: 1.5.1
-	Updated: 15/01/2015
+	Version: 1.5.2
+	Updated: 24/02/2015
 
 	Last Changelog:
 
-	Added rashidlocation
-	Fixed randomcolor parameter, now is optional
-
+	Fixed unrust counting twice the amount of rust removers used
+	Must fix randomcolor
 --]]
 
 
@@ -606,7 +606,7 @@ function unrust(ignore, drop, value)
 		if itemcount(Item) > 0 then
 			pausewalking(itemcount(Item) * 2000)
 			useitemon(9016, Item, '0-15') waitping(1, 1.5)
-			increaseamountused(9016, 1)
+			--increaseamountused(9016, 1) --bot already adds items used
 			pausewalking(0)
 		end
 	end
@@ -951,6 +951,10 @@ function drawvector(x1, y1, x2, y2) -- By Lucas Terra
 	drawline(x1, y1, x2-x1, y2-y1)
 end
 
+--[[ randomcolor, todo:
+	* Make colors more attractive instead of the metallic outcome 
+	* Fix some wrong colors when selecting a X base
+]]--
 function randomcolor(options)
 	options = options or {}
 	local h, s, l = math.random(0, 360), math.random(0, 100) / 100, math.random(0, 100) / 100
