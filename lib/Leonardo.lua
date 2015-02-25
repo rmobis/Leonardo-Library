@@ -3,11 +3,12 @@
 	Leonardo's Library
 	Created: 15/01/2014
 	Version: 1.5.2
-	Updated: 24/02/2015
+	Updated: 25/02/2015
 
 	Last Changelog:
 
 	Fixed unrust counting twice the amount of rust removers used
+	Must add areca palm to antifurniture exceptions list
 	Must fix randomcolor
 --]]
 
@@ -632,6 +633,8 @@ function unrust(ignore, drop, value)
 	end
 end
 
+local antiFurnitureException = {--[[areca palm]]}
+
 function antifurnituretrap(weapon, stand)
 	weapon = weapon or 'Machete'
 	stand = (stand or 0) * 1000
@@ -650,7 +653,7 @@ function antifurnituretrap(weapon, stand)
 				for k = tile.itemcount, 1, -1 do
 					local info = iteminfo(tile.item[k].id)
 
-					if info.isunpass and not info.isunmove then
+					if (info.isunpass and not info.isunmove) or table.find(antiFurnitureExceptions, info.id) then
 						table.insert(Furniture, {x = x, y = y, z = z, id = info.id, top = k == tile.itemcount})
 						break
 					end
