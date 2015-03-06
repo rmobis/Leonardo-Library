@@ -7,6 +7,7 @@
 
 	Last Changelog:
 
+	Added string:parselootmessage, string:parsehealmessage, string:parseattackmessage
 	Fixed unrust counting twice the amount of rust removers used
 	Must add areca palm to antifurniture exceptions list
 	Must fix randomcolor
@@ -84,6 +85,21 @@ local defaultColors = {
 	['pink'] = {300, 336},
 	['cyan'] = {168, 187},
 	['monochrome'] = 1,
+}
+
+local lootParse_itemsExceptions = {
+	[itemid('mana potion')]            = 50,
+	[itemid('health potion')]          = 45,
+	[itemid('strong mana potion']      = 80,
+	[itemid('strong health potion')]   = 100,
+	[itemid('great mana potion')]      = 120,
+	[itemid('great health potion')]    = 190,
+	[itemid('great spirit potion')]    = 190,
+	[itemid('ultimate health potion')] = 310,
+}
+
+local antiFurniture_itemsExceptions = {
+	
 }
 
 -- LOCAL FUNCTIONS
@@ -261,6 +277,117 @@ function table.tostring(self, name, sep)
 	end
 
 	return sprintf("%s{%s}", name and sprintf('%s = ', name) or '', str:sub(1, -(2 + #sep)))
+end
+
+function string:parselootmessage()
+	local lootInfo = {name = '', items = {}, value = 0}
+	local monsterName, lootContent = self:match(REGEX_LOOT)
+
+	if monsterName and monsterName ~= '' then
+		lootInfo.name = monsterName:lower():gsub("^the ", "")
+
+		if not lootContent:match('^nothing') then
+			lootContent = lootContent:token(nil, ', ')
+			local lootItems = {}
+			
+			setitemwarnings(false)
+			
+			for _, lootItem in ipairs(lootContent) do
+				local itemAmount, itemName = tonumber(lootItem:token(1, " ")) or 1, lootItem:gsub("%d+ ", ""):gsub("^an? ", "")
+				local itemInfo = iteminfo(itemName)
+
+				if itemInfo.name ~= '' then
+					local itemValue = lootParse_itemsExceptions[itemInfo.id] or itemInfo.sellprice
+					lootInfo.value = lootInfo.value + (itemAmount * itemValue)
+					local pos = table.find(lootInfo.items, itemInfo.id, 'id')
+
+					if pos then
+						lootInfo.items[pos].amount = lootInfo.items[pos].amount + itemAmount
+					else
+						table.insert(lootInfo.items, {id = itemInfo.id, name = itemInfo.name, amount = itemAmount, value = itemValue})
+					end
+				end
+			end
+			
+			setitemwarnings(true)
+		end
+	end
+
+	return lootInfo
+end
+
+function string:parsehealmessage()
+	local healInfo = {amount = 0, healer = '', target = ''}
+
+	healInfo.amount = self:match('You healed yourself for (%w+) hitpoint[s]*%.')
+	if healInfo.amount then
+		healInfo.amount, healInfo.healer, healInfo.target = tonumber(healInfo.amount), $name, $name
+
+		return healInfo
+	else
+		healInfo.healer, healInfo.amount = self:match('(.+) healed h[erim]+self for (%w+) hitpoint[s]*%.')
+		if healInfo.amount then
+			healInfo.amount, healInfo.target = tonumber(healInfo.amount), healInfo.healer
+
+			return healInfo
+		else
+			healInfo.target, healInfo.amount = self:match('You heal (.+) for (%w+) hitpoint[s]*%.')
+			if healInfo.amount then
+				healInfo.amount, healInfo.healer = tonumber(healInfo.amount), healInfo
+
+				return healInfo
+			else
+				healInfo.healer, healInfo.amount= self:match('You were healed by (.+) for (%w+) hitpoint[s]*%.')
+				if healInfo.amount then
+					healInfo.amount, healInfo.target = tonumber(healInfo.amount), $name
+
+					return healInfo
+				else
+					healInfo.target, healInfo.healer, healInfo.amount = self:match('(.+) was healed by (.+) for (%w+) hitpoint[s]*%.')
+					if healInfo.amount then
+						healInfo.amount = tonumber(healInfo.amount)
+
+						return healInfo
+					end
+				end
+			end
+		end
+	end
+
+	return {amount = 0, healer = '', target = ''}
+end
+
+function string:parseattackmessage()
+	local atkInfo = {amount = 0, dealer = {name = '', type = ''}, target = {name = '', type = ''}}
+
+	atkInfo.amount, atkInfo.dealer.name = self:match('You lose (%w+) .+ due to an attack by (.+)%.')
+	if (atkInfo.amount) then
+		atkInfo.amount = tonumber(atkInfo.amount)
+		atkInfo.dealer = {name = atkInfo.dealer.name:gsub('^a ', '', 1):gsub('^an ', '', 1):gsub('^the ', '', 1), type = (atkInfo.dealer.name:match('^a ') or atkInfo.dealer.name:match('^an ') or atkInfo.dealer.name:match('^the ')) and 'monster' or 'player'}
+		atkInfo.target = {name = Self.Name(), type = 'player'}
+
+		return atkInfo
+	else
+		atkInfo.target.name, atkInfo.amount = self:match('(.+) loses (%w+) .+ due to your attack%.')
+		if (atkInfo.amount) then
+			atkInfo.amount = tonumber(atkInfo.amount)
+			atkInfo.dealer = {name = Self.Name(), type = 'player'}
+			atkInfo.target = {name = atkInfo.target.name:gsub('^A ', '', 1):gsub('^An ', '', 1):gsub('^The ', '', 1), type = (atkInfo.target.name:match('^A ') or atkInfo.target.name:match('^An ') or atkInfo.target.name:match('^The ')) and 'monster' or 'player'}
+
+			return atkInfo
+		else
+			atkInfo.target.name, atkInfo.amount, atkInfo.dealer.name = self:match('(.+) loses (%w+) .+ due to an attack by (.+)%.')
+			if (atkInfo.amount) then
+				atkInfo.amount = tonumber(atkInfo.amount)
+				atkInfo.dealer = {name = atkInfo.dealer.name:gsub('^a ', '', 1):gsub('^an ', '', 1):gsub('^the ', '', 1), type = (atkInfo.dealer.name:match('^a ') or atkInfo.dealer.name:match('^an ') or atkInfo.dealer.name:match('^the ')) and 'monster' or 'player'}
+				atkInfo.target = {name = atkInfo.target.name:gsub('^A ', '', 1):gsub('^An ', '', 1):gsub('^The ', '', 1), type = (atkInfo.target.name:match('^A ') or atkInfo.target.name:match('^An ') or atkInfo.target.name:match('^The ')) and 'monster' or 'player'}
+				
+				return atkInfo
+			end
+		end
+	end
+	
+	return {amount = 0, dealer = {name = '', type = ''}, target = {name = '', type = ''}}
 end
 
 function tosec(str)
