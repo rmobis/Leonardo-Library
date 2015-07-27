@@ -1,23 +1,22 @@
 --[[
-
 	Leonardo's Library
 	Created: 15/01/2014
-	Version: 1.5.2
-	Updated: 25/02/2015
+	Version: 1.6.0
+	Updated: 27/07/2015
 
 	Last Changelog:
 
-	Added string:parselootmessage, string:parsehealmessage, string:parseattackmessage
-	Fixed unrust counting twice the amount of rust removers used
-	Must add areca palm to antifurniture exceptions list
-	Must fix randomcolor
+	Added isinsidespecialarea
+	Fixed isinsidearea
+	Fixed setareasize regexes
+
 --]]
 
 
 -- GLOBALS AND LOCAL VARIABLES
 
 LIBS = LIBS or {}
-LIBS.LEONARDO = "1.5.1"
+LIBS.LEONARDO = "1.6.0"
 
 POLICY_NONE = 'None'
 POLICY_CAVEBOT = 'Cavebot'
@@ -85,21 +84,6 @@ local defaultColors = {
 	['pink'] = {300, 336},
 	['cyan'] = {168, 187},
 	['monochrome'] = 1,
-}
-
-local lootParse_itemsExceptions = {
-	[itemid('mana potion')]            = 50,
-	[itemid('health potion')]          = 45,
-	[itemid('strong mana potion']      = 80,
-	[itemid('strong health potion')]   = 100,
-	[itemid('great mana potion')]      = 120,
-	[itemid('great health potion')]    = 190,
-	[itemid('great spirit potion')]    = 190,
-	[itemid('ultimate health potion')] = 310,
-}
-
-local antiFurniture_itemsExceptions = {
-	
 }
 
 -- LOCAL FUNCTIONS
@@ -279,117 +263,6 @@ function table.tostring(self, name, sep)
 	return sprintf("%s{%s}", name and sprintf('%s = ', name) or '', str:sub(1, -(2 + #sep)))
 end
 
-function string:parselootmessage()
-	local lootInfo = {name = '', items = {}, value = 0}
-	local monsterName, lootContent = self:match(REGEX_LOOT)
-
-	if monsterName and monsterName ~= '' then
-		lootInfo.name = monsterName:lower():gsub("^the ", "")
-
-		if not lootContent:match('^nothing') then
-			lootContent = lootContent:token(nil, ', ')
-			local lootItems = {}
-			
-			setitemwarnings(false)
-			
-			for _, lootItem in ipairs(lootContent) do
-				local itemAmount, itemName = tonumber(lootItem:token(1, " ")) or 1, lootItem:gsub("%d+ ", ""):gsub("^an? ", "")
-				local itemInfo = iteminfo(itemName)
-
-				if itemInfo.name ~= '' then
-					local itemValue = lootParse_itemsExceptions[itemInfo.id] or itemInfo.sellprice
-					lootInfo.value = lootInfo.value + (itemAmount * itemValue)
-					local pos = table.find(lootInfo.items, itemInfo.id, 'id')
-
-					if pos then
-						lootInfo.items[pos].amount = lootInfo.items[pos].amount + itemAmount
-					else
-						table.insert(lootInfo.items, {id = itemInfo.id, name = itemInfo.name, amount = itemAmount, value = itemValue})
-					end
-				end
-			end
-			
-			setitemwarnings(true)
-		end
-	end
-
-	return lootInfo
-end
-
-function string:parsehealmessage()
-	local healInfo = {amount = 0, healer = '', target = ''}
-
-	healInfo.amount = self:match('You healed yourself for (%w+) hitpoint[s]*%.')
-	if healInfo.amount then
-		healInfo.amount, healInfo.healer, healInfo.target = tonumber(healInfo.amount), $name, $name
-
-		return healInfo
-	else
-		healInfo.healer, healInfo.amount = self:match('(.+) healed h[erim]+self for (%w+) hitpoint[s]*%.')
-		if healInfo.amount then
-			healInfo.amount, healInfo.target = tonumber(healInfo.amount), healInfo.healer
-
-			return healInfo
-		else
-			healInfo.target, healInfo.amount = self:match('You heal (.+) for (%w+) hitpoint[s]*%.')
-			if healInfo.amount then
-				healInfo.amount, healInfo.healer = tonumber(healInfo.amount), healInfo
-
-				return healInfo
-			else
-				healInfo.healer, healInfo.amount= self:match('You were healed by (.+) for (%w+) hitpoint[s]*%.')
-				if healInfo.amount then
-					healInfo.amount, healInfo.target = tonumber(healInfo.amount), $name
-
-					return healInfo
-				else
-					healInfo.target, healInfo.healer, healInfo.amount = self:match('(.+) was healed by (.+) for (%w+) hitpoint[s]*%.')
-					if healInfo.amount then
-						healInfo.amount = tonumber(healInfo.amount)
-
-						return healInfo
-					end
-				end
-			end
-		end
-	end
-
-	return {amount = 0, healer = '', target = ''}
-end
-
-function string:parseattackmessage()
-	local atkInfo = {amount = 0, dealer = {name = '', type = ''}, target = {name = '', type = ''}}
-
-	atkInfo.amount, atkInfo.dealer.name = self:match('You lose (%w+) .+ due to an attack by (.+)%.')
-	if (atkInfo.amount) then
-		atkInfo.amount = tonumber(atkInfo.amount)
-		atkInfo.dealer = {name = atkInfo.dealer.name:gsub('^a ', '', 1):gsub('^an ', '', 1):gsub('^the ', '', 1), type = (atkInfo.dealer.name:match('^a ') or atkInfo.dealer.name:match('^an ') or atkInfo.dealer.name:match('^the ')) and 'monster' or 'player'}
-		atkInfo.target = {name = Self.Name(), type = 'player'}
-
-		return atkInfo
-	else
-		atkInfo.target.name, atkInfo.amount = self:match('(.+) loses (%w+) .+ due to your attack%.')
-		if (atkInfo.amount) then
-			atkInfo.amount = tonumber(atkInfo.amount)
-			atkInfo.dealer = {name = Self.Name(), type = 'player'}
-			atkInfo.target = {name = atkInfo.target.name:gsub('^A ', '', 1):gsub('^An ', '', 1):gsub('^The ', '', 1), type = (atkInfo.target.name:match('^A ') or atkInfo.target.name:match('^An ') or atkInfo.target.name:match('^The ')) and 'monster' or 'player'}
-
-			return atkInfo
-		else
-			atkInfo.target.name, atkInfo.amount, atkInfo.dealer.name = self:match('(.+) loses (%w+) .+ due to an attack by (.+)%.')
-			if (atkInfo.amount) then
-				atkInfo.amount = tonumber(atkInfo.amount)
-				atkInfo.dealer = {name = atkInfo.dealer.name:gsub('^a ', '', 1):gsub('^an ', '', 1):gsub('^the ', '', 1), type = (atkInfo.dealer.name:match('^a ') or atkInfo.dealer.name:match('^an ') or atkInfo.dealer.name:match('^the ')) and 'monster' or 'player'}
-				atkInfo.target = {name = atkInfo.target.name:gsub('^A ', '', 1):gsub('^An ', '', 1):gsub('^The ', '', 1), type = (atkInfo.target.name:match('^A ') or atkInfo.target.name:match('^An ') or atkInfo.target.name:match('^The ')) and 'monster' or 'player'}
-				
-				return atkInfo
-			end
-		end
-	end
-	
-	return {amount = 0, dealer = {name = '', type = ''}, target = {name = '', type = ''}}
-end
-
 function tosec(str)
 	local sum, time, units, index = 0, str:token(nil, ":"), {86400, 3600, 60, 1}, 1
 
@@ -433,7 +306,7 @@ function getareaposition(name)
 	local setting = getareasetting(name, 'Coordinates')
 
 	if setting then
-		local x, y, z = setting:match(".-(%d+).-(%d+).-(%d+)")
+		local x, y, z = setting:match(REGEX_COORDS)
 
 		return {x = tonumber(x) or 0, y = tonumber(y) or 0, z = tonumber(z) or 0}
 	end
@@ -451,12 +324,12 @@ function getareasize(name)
 	local setting = getareasetting(name, 'Size')
 
 	if setting then
-		local w, h = setting:match('(%d+) to (%d+)')
+		local w, h = setting:match(REGEX_RANGE)
 
 		return {w = tonumber(w) or 0, h = tonumber(h) or 0}
 	end
 
-	return {w = 0, h = o}
+	return {w = 0, h = 0}
 end
 
 function setareasize(name, w, h)
@@ -734,7 +607,7 @@ function unrust(ignore, drop, value)
 		if itemcount(Item) > 0 then
 			pausewalking(itemcount(Item) * 2000)
 			useitemon(9016, Item, '0-15') waitping(1, 1.5)
-			--increaseamountused(9016, 1) --bot already adds items used
+			increaseamountused(9016, 1)
 			pausewalking(0)
 		end
 	end
@@ -760,8 +633,6 @@ function unrust(ignore, drop, value)
 	end
 end
 
-local antiFurnitureException = {--[[areca palm]]}
-
 function antifurnituretrap(weapon, stand)
 	weapon = weapon or 'Machete'
 	stand = (stand or 0) * 1000
@@ -780,7 +651,7 @@ function antifurnituretrap(weapon, stand)
 				for k = tile.itemcount, 1, -1 do
 					local info = iteminfo(tile.item[k].id)
 
-					if (info.isunpass and not info.isunmove) or table.find(antiFurnitureExceptions, info.id) then
+					if info.isunpass and not info.isunmove then
 						table.insert(Furniture, {x = x, y = y, z = z, id = info.id, top = k == tile.itemcount})
 						break
 					end
@@ -908,8 +779,8 @@ end
 function isinsidearea(...)
 	local SpecialAreas = {...}
 
-	if #SpecialAreas == 1 and type(SpecialAreas[1][1]) == 'table' then
-		SpecialAreas = SpecialAreas[1]
+	if #SpecialAreas == 5 and type(SpecialAreas[1]) == 'number' then
+		SpecialAreas = {SpecialAreas}
 	end
 
 	for i, area in ipairs(SpecialAreas) do
@@ -919,6 +790,21 @@ function isinsidearea(...)
 			if $posz == e and $posx <= b and $posx >= a and $posy <= d and $posy >= c then
 				return true
 			end
+		end
+	end
+
+	return false
+end
+
+function isinsidespecialarea(...)
+	local specialAreas = {...}
+
+	for _, area in pairs(specialAreas) do
+		local areaPos = getareaposition(area)
+		local areaSize = getareasize(area)
+
+		if $posz == areaPos.z and $posx <= areaPos.x + areaSize.w - 1 and $posx >= areaPos.x and $posy <= areaPos.y + areaSize.h - 1 and $posy >= areaPos.y then
+			return true
 		end
 	end
 
@@ -1081,10 +967,6 @@ function drawvector(x1, y1, x2, y2) -- By Lucas Terra
 	drawline(x1, y1, x2-x1, y2-y1)
 end
 
---[[ randomcolor, todo:
-	* Make colors more attractive instead of the metallic outcome 
-	* Fix some wrong colors when selecting a X base
-]]--
 function randomcolor(options)
 	options = options or {}
 	local h, s, l = math.random(0, 360), math.random(0, 100) / 100, math.random(0, 100) / 100
