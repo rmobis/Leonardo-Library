@@ -1,14 +1,12 @@
 --[[
 	Leonardo's Library
 	Created: 15/01/2014
-	Version: 1.6.0
-	Updated: 27/07/2015
+	Version: 1.6.1
+	Updated: 27/09/2015
 
 	Last Changelog:
 
-	Added isinsidespecialarea
-	Fixed isinsidearea
-	Fixed setareasize regexes
+	Fixed isontemple
 
 --]]
 
@@ -16,7 +14,7 @@
 -- GLOBALS AND LOCAL VARIABLES
 
 LIBS = LIBS or {}
-LIBS.LEONARDO = "1.6.0"
+LIBS.LEONARDO = "1.6.1"
 
 POLICY_NONE = 'None'
 POLICY_CAVEBOT = 'Cavebot'
@@ -837,7 +835,7 @@ function checklocation(dist, label, section)
 end
 
 function isontemple()
-	local temp = isinsidearea(cityTemples)
+	local temp = isinsidearea(unpack(cityTemples))
 
 	if $connected then
 		LIB_CACHE.isontemple = temp
