@@ -855,15 +855,15 @@ function withdrawitems(where, to, ...)
 	if tempType == 'string' then
 		where = where:lower()
 
-		if where:find('depot') or where:find('chest') then
-			-- user input depot, but the correct name is 'Depot Chest'
-			where = 'Depot Chest'
+		if where:find('depot') or where:find('box') then
+			-- user input depot
+			where = itemname(depotindextoid($favoritedepot))
 		elseif where:find('inbox') then
 			-- used input inbox, but the correct name is 'Your Inbox'
 			where = 'Your Inbox'
 		else
 			-- used input any container name
-			where = getlootingdestination(where) or itemname(where)
+			where = itemname(where)
 		end
 	elseif tempType == 'userdata' and where.objtype == 'container' then
 		-- user input any container object, we only want the name
@@ -901,7 +901,7 @@ function withdrawitems(where, to, ...)
 			local bp, id, amount = itemname(item.backpack or item.bp or item[1]), item.name or item[2], item.amount or item.count or item[3] or 100
 
 			if id and bp and amount then
-				moveitemsupto(id, amount + itemcount(id, bp), bp, from) waitFunc()
+				moveitemsupto(id, amount, bp, where) waitFunc()
 			end
 		elseif tempType == 'number' or tempType == 'string' then
 			moveitems(item, to, where) waitFunc()
